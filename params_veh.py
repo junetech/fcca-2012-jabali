@@ -29,7 +29,8 @@ class ParamsVeh:
 def main():
     """parameter load test
     """
-    json_filename_list = ["params_veh_t1.json",
+    json_filename_list = ["params_veh_t0.json",
+                          "params_veh_t1.json",
                           "params_veh_t2.json",
                           "params_veh_t3.json"]
     encoding = "utf-8"

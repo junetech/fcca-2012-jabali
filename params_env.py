@@ -15,7 +15,7 @@ class ParamsEnv:
     service_time: float         # \mu
     service_time_unit: str
     route_duration_limit: float     # t
-    vehicle_types: List[str]    # Q = {1, ..., q}
+    vehicle_types: List[str]    # Q = {0, ..., q}
 
     def __init__(self, filename: str,
                  encoding: str):
