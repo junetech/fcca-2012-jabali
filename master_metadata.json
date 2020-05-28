@@ -1,0 +1,7 @@
+{
+    "env_json_filename": "params_env.json",
+    "veh_file_postfix": "params_veh_",
+    "veh_file_ext": ".json",
+    "json_encoding": "utf-8",
+    "lp_filename": "fcca_mip.lp"
+}
