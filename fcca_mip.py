@@ -65,7 +65,7 @@ def make_fcca_mip_model(params: ParamsFCCA) -> Model:
                         f"OnlyOneVtypeOuterRing_{j}")
 
     # (5), (6), (7) big-M constraints
-    big_M = 2 * params.radius  # TODO: using params.radius temporarily
+    big_M = 20 * params.radius  # TODO: using params.radius temporarily
     for i in veh_type_list:
         for j in params.ring_idx_list:
             model.addConstr(n[i][j] <= big_M * x[i][j], f"bigM_n_{i}_{j}")
@@ -76,7 +76,7 @@ def make_fcca_mip_model(params: ParamsFCCA) -> Model:
     for i in veh_type_list:
         for j in outer_ring_idx_list:
             lhs = quicksum(y[m][j-1] + l[m][j-1] for m in veh_type_list)
-            lhs += -big_M * (1 * x[i][j])
+            lhs += -big_M * (1 - x[i][j])
             model.addConstr(lhs <= y[i][j],
                             f"MinDistanceVtype_{i}_OuterRing_{j}")
         # y[i][0] == 0 constraint omitted
@@ -95,7 +95,7 @@ def make_fcca_mip_model(params: ParamsFCCA) -> Model:
         lhs += quicksum(params.c_density * params.w_star * l[i][j] *
                         math.sqrt(2/(3*params.c_density))
                         for i in veh_type_list)
-        lhs += quicksum(2 * params.c_density * params.w_star * l[i][j] *
+        lhs += quicksum(params.c_density * params.w_star * l[i][j] *
                         params.service_time * params.speed
                         for i in veh_type_list)
         model.addConstr(lhs <= rhs, f"DurationLimitOuterRing_{j}")
@@ -153,15 +153,15 @@ def make_fcca_mip_model(params: ParamsFCCA) -> Model:
                        for i in actual_veh_type_list)
 
     # (16) the entire region is serviced
-    model.addConstr(quicksum(quicksum(l[i][j] for i in veh_type_list)
-                             for j in params.ring_idx_list) == params.radius,
+    model.addConstr(quicksum(quicksum(l[i][j] for j in params.ring_idx_list)
+                             for i in veh_type_list) == params.radius,
                     "EntireRegionServed")
 
     # (17) total capacity is enough for all customers
     total_c = params.total_customer
     model.addConstr(quicksum(quicksum(c_dict[i] * n[i][j]
-                                      for i in veh_type_list)
-                             for j in params.ring_idx_list) >= total_c,
+                                      for j in params.ring_idx_list)
+                             for i in veh_type_list) >= total_c,
                     "TotalCapacityEnough")
 
     # Set minimize total cost objective
@@ -178,12 +178,12 @@ def main():
     veh_file_ext = ".json"
     encoding = "utf-8"
 
-    fcca_params = ParamsFCCA(env_json_filename,
+    params_fcca = ParamsFCCA(env_json_filename,
                              veh_file_postfix,
                              veh_file_ext,
                              encoding)
 
-    fcca_model = make_fcca_mip_model(fcca_params)
+    fcca_model = make_fcca_mip_model(params_fcca)
 
     # write to .lp file
     lp_filename = "fcca_mip.lp"
