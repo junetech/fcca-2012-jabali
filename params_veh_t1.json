@@ -1,0 +1,6 @@
+{
+    "name": "t1",
+    "capacity": 20,
+    "fixed_cost": 100.0,
+    "var_cost": 1.05
+}

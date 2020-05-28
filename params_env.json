@@ -1,0 +1,10 @@
+{
+    "description": "Base case parameters in km-h units",
+    "radius": 160.0,
+    "speed": 60.0,
+    "customer_density": 0.02,
+    "service_time": 5.0,
+    "service_time_unit": "minutes",
+    "route_duration_limit": 6.0,
+    "vehicle_types": ["t1", "t2", "t3"]
+}
