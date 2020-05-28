@@ -11,10 +11,15 @@ from params_veh import ParamsVeh
 class ParamsFCCA(ParamsEnv):
     """Parameters and parameter-calculating methods for FCAA MIP
     """
+    veh_type_idx_list: List[int]
+    veh_type_idx_dict: Dict[int, str]  # index -> v_type
+    ring_idx_list: List[int]
+
     w_star: float    # w^*: optimal width of the circular trapezoid
     l_star: float    # l^*: optimal width of the approximated rectangle
     ring_count: int  # k:   potential number of rings
-    ring_idx_list: List[int]
+    gamma: float     # gamma: Newell and Daganzo(1986)'s first ring approx.
+    total_customer: int     # e
 
     def __init__(self, env_filename: str,
                  veh_file_postfix: str,
@@ -31,23 +36,34 @@ class ParamsFCCA(ParamsEnv):
             veh_filename = veh_file_postfix + v_type + veh_file_ext
             self.veh_dict[v_type] = ParamsVeh(veh_filename, encoding)
 
+        self.make_veh_type_idx_list()
         self.calc_w_star()
         self.calc_l_star()
         temp_ring_count = 5  # TODO: fixed temporarily for base case
-        self.apply_ring_count(temp_ring_count)  
+        self.apply_ring_count(temp_ring_count)
+        self.calc_gamma()
+        self.calc_total_customer()
 
-    def print_info(self):
-        """terminal print of info
+    def make_veh_type_idx_list(self):
+        """make list of index & dictionary for v_type
         """
-        print(f"{self.__class__.__name__} instance contents")
-        print_keys = [key for key in self.__dict__ if key != "veh_dict"]
-        for key in print_keys:
-            value = self.__dict__[key]
-            print(f"  {key}:\t{value}")
-        print("  veh_dict contents below")
-        for v_type in self.vehicle_types:
-            v_ins = self.veh_dict[v_type]
-            v_ins.print_info()
+        self.veh_type_idx_list = list()
+        self.veh_type_idx_dict = dict()
+        for idx, v_type in enumerate(self.vehicle_types):
+            self.veh_type_idx_list.append(idx)
+            self.veh_type_idx_dict[idx] = v_type
+
+    def make_idx_list_without_dummy(self) -> List[int]:
+        """
+        Returns:
+            List[int] -- v_type index without dummy
+        """
+        return_list: List[int] = list()
+        for idx in self.veh_type_idx_list:
+            v_type = self.veh_type_idx_dict[idx]
+            if v_type != self.dummy_type:
+                return_list.append(idx)
+        return return_list
 
     def calc_w_star(self):
         """Calculate and set value of w_star member
@@ -62,7 +78,55 @@ class ParamsFCCA(ParamsEnv):
 
     def apply_ring_count(self, ring_count: int):
         self.ring_count = ring_count
-        self.ring_idx_list = [i+1 for i in range(self.ring_count)]
+        self.ring_idx_list = [i for i in range(self.ring_count)]
+
+    def calc_gamma(self):
+        """Calculate and set value of gamma member
+        """
+        self.gamma = 0.95 * math.sqrt(2/(3*self.c_density))
+
+    def calc_total_customer(self):
+        """Calculate and set value of total_customer member
+        """
+        self.total_customer = \
+            math.ceil(math.pi * self.radius * self.radius * self.c_density)
+
+    def print_info(self):
+        """terminal print of info
+        """
+        print(f"{self.__class__.__name__} instance contents")
+        print_keys = [key for key in self.__dict__ if key != "veh_dict"]
+        for key in print_keys:
+            value = self.__dict__[key]
+            print(f"  {key}:\t{value}")
+        print("  veh_dict contents below")
+        for v_type in self.vehicle_types:
+            v_ins = self.veh_dict[v_type]
+            v_ins.print_info()
+
+    def make_veh_capacity_dict(self) -> Dict[int, int]:
+        """
+        Returns:
+            Dict[int, int] -- v_type_idx -> capacity
+        """
+        return {idx: self.veh_dict[v_type].capacity
+                for idx, v_type in enumerate(self.vehicle_types)}
+
+    def make_veh_fixed_cost_dict(self) -> Dict[int, float]:
+        """
+        Returns:
+            Dict[int, int] -- v_type_idx -> fixed_cost
+        """
+        return {idx: self.veh_dict[v_type].fixed_cost
+                for idx, v_type in enumerate(self.vehicle_types)}
+
+    def make_veh_var_cost_dict(self) -> Dict[int, float]:
+        """
+        Returns:
+            Dict[int, int] -- v_type_idx -> var_cost
+        """
+        return {idx: self.veh_dict[v_type].var_cost
+                for idx, v_type in enumerate(self.vehicle_types)}
 
 
 def main():
