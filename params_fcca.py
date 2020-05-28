@@ -2,7 +2,7 @@
 """
 import json
 import math
-from typing import Dict
+from typing import Dict, List
 
 from params_env import ParamsEnv
 from params_veh import ParamsVeh
@@ -14,6 +14,7 @@ class ParamsFCCA(ParamsEnv):
     w_star: float    # w^*: optimal width of the circular trapezoid
     l_star: float    # l^*: optimal width of the approximated rectangle
     ring_count: int  # k:   potential number of rings
+    ring_idx_list: List[int]
 
     def __init__(self, env_filename: str,
                  veh_file_postfix: str,
@@ -32,7 +33,8 @@ class ParamsFCCA(ParamsEnv):
 
         self.calc_w_star()
         self.calc_l_star()
-        self.ring_count = 5  # TODO: fixed temporarily for base case
+        temp_ring_count = 5  # TODO: fixed temporarily for base case
+        self.apply_ring_count(temp_ring_count)  
 
     def print_info(self):
         """terminal print of info
@@ -57,6 +59,10 @@ class ParamsFCCA(ParamsEnv):
         """
         _min_cap = min([v_ins.capacity for v_ins in self.veh_dict.values()])
         self.l_star = _min_cap / (math.sqrt(6*self.c_density))
+
+    def apply_ring_count(self, ring_count: int):
+        self.ring_count = ring_count
+        self.ring_idx_list = [i+1 for i in range(self.ring_count)]
 
 
 def main():
