@@ -11,8 +11,9 @@ from params_veh import ParamsVeh
 class ParamsFCCA(ParamsEnv):
     """Parameters and parameter-calculating methods for FCAA MIP
     """
-    wth_t: float    # w^*: optimal width of the circular trapezoid
-    lth_t: float    # l^*: optimal width of the approximated rectangle
+    w_star: float    # w^*: optimal width of the circular trapezoid
+    l_star: float    # l^*: optimal width of the approximated rectangle
+    ring_count: int  # k:   potential number of rings
 
     def __init__(self, env_filename: str,
                  veh_file_postfix: str,
@@ -29,6 +30,10 @@ class ParamsFCCA(ParamsEnv):
             veh_filename = veh_file_postfix + v_type + veh_file_ext
             self.veh_dict[v_type] = ParamsVeh(veh_filename, encoding)
 
+        self.calc_w_star()
+        self.calc_l_star()
+        self.ring_count = 5  # TODO: fixed temporarily for base case
+
     def print_info(self):
         """terminal print of info
         """
@@ -42,10 +47,16 @@ class ParamsFCCA(ParamsEnv):
             v_ins = self.veh_dict[v_type]
             v_ins.print_info()
 
-    def calc_wth_t(self):
-        """Calculate and set value of wth_t member
+    def calc_w_star(self):
+        """Calculate and set value of w_star member
         """
-        self.wth_t = math.sqrt(3/(2*self.customer_density))
+        self.w_star = math.sqrt(3/(2*self.c_density))
+
+    def calc_l_star(self):
+        """Calculate and set value of l_star member
+        """
+        _min_cap = min([v_ins.capacity for v_ins in self.veh_dict.values()])
+        self.l_star = _min_cap / (math.sqrt(6*self.c_density))
 
 
 def main():

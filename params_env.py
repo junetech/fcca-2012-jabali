@@ -11,7 +11,7 @@ class ParamsEnv:
     description: str
     radius: float               # r
     speed: float                # v
-    customer_density: float     # \delta
+    c_density: float            # \delta
     service_time: float         # \mu
     service_time_unit: str
     route_duration_limit: float     # t
