@@ -16,6 +16,7 @@ class ParamsEnv:
     service_time_unit: str
     route_duration_limit: float     # t
     vehicle_types: List[str]    # Q = {0, ..., q}
+    dummy_type: str
 
     def __init__(self, filename: str,
                  encoding: str):
