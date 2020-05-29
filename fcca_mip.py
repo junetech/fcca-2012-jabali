@@ -11,7 +11,7 @@ Model = gp.Model
 BINARY = GRB.BINARY
 INTEGER = GRB.INTEGER
 CONTINUOUS = GRB.CONTINUOUS
-quicksum = gp.quicksum # xsum <-> quicksum
+quicksum = gp.quicksum  # xsum <-> quicksum
 LinExpr = gp.LinExpr
 MINIMIZE = GRB.MINIMIZE
 
@@ -81,7 +81,7 @@ def make_fcca_mip_model(params: ParamsFCCA) -> Model:
                             f"MinDistanceVtype_{i}_OuterRing_{j}")
         # y[i][0] == 0 constraint omitted
 
-    # (9) capacity constraints
+    # (9) outer ring capacity constraints
     for i in veh_type_list:
         for j in outer_ring_idx_list:
             lhs = 2 * params.c_density * params.w_star * l[i][j]
@@ -130,7 +130,7 @@ def make_fcca_mip_model(params: ParamsFCCA) -> Model:
         model.addConstr(math.pi * l[i][inner_ring_idx] / params.gamma
                         <= n[i][inner_ring_idx], constr_n)
 
-    # (14) capacity constraints for each zone serviced by vehicle type i
+    # (14) inner ring capacity constraints for each zone
     for i in actual_veh_type_list:
         constr_n = f"CapacityVtype_{i}_InnerRing"
         model.addConstr(params.c_density * params.gamma * l[i][inner_ring_idx]

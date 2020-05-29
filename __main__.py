@@ -24,6 +24,18 @@ class MasterMetadata:
                 self.__dict__[key] = value
 
 
+def optimize_and_show_result(fcca_model, metadata: MasterMetadata):
+    # write to .lp file
+    fcca_model.write(metadata.lp_filename)
+    fcca_model.optimize()
+
+    # show results
+    print("Optimize method finished")
+    for v in fcca_model.getVars():
+        if v.x >= 0.0001:
+            print(f"{v.varName}, {v.x}")
+
+
 def main():
     """read and solve
     """
@@ -36,10 +48,7 @@ def main():
                              metadata.json_encoding)
 
     fcca_model = make_fcca_mip_model(params_fcca)
-
-    # write to .lp file
-    fcca_model.write(metadata.lp_filename)
-    fcca_model.optimize()
+    optimize_and_show_result(fcca_model, metadata)
 
 
 if __name__ == "__main__":
