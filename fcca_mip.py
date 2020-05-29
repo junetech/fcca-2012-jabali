@@ -134,7 +134,7 @@ def make_fcca_mip_model(params: ParamsFCCA) -> Model:
     for i in actual_veh_type_list:
         constr_n = f"CapacityVtype_{i}_InnerRing"
         model.addConstr(params.c_density * params.gamma * l[i][inner_ring_idx]
-                        <= c_dict[i], constr_n)
+                        <= c_dict[i], constr_n)  # the paper seems wrong: '=='
 
     # inner ring cost function
     i_cost = LinExpr()
