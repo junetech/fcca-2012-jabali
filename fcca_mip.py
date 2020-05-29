@@ -11,7 +11,7 @@ Model = gp.Model
 BINARY = GRB.BINARY
 INTEGER = GRB.INTEGER
 CONTINUOUS = GRB.CONTINUOUS
-quicksum = gp.quicksum
+quicksum = gp.quicksum # xsum <-> quicksum
 LinExpr = gp.LinExpr
 MINIMIZE = GRB.MINIMIZE
 
