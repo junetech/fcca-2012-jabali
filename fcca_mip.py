@@ -75,7 +75,7 @@ def make_fcca_mip_model(params: ParamsFCCA) -> Model:
     # (8) minimum distance(the depot -> the inner edge of ring j)
     for i in veh_type_list:
         for j in outer_ring_idx_list:
-            lhs = quicksum(y[m][j-1] + l[m][j-1] for m in veh_type_list)
+            lhs = quicksum(y[m][j-1] + l[i][j-1] for m in veh_type_list)
             lhs += -big_M * (1 - x[i][j])
             model.addConstr(lhs <= y[i][j],
                             f"MinDistanceVtype_{i}_OuterRing_{j}")
@@ -134,7 +134,7 @@ def make_fcca_mip_model(params: ParamsFCCA) -> Model:
     for i in actual_veh_type_list:
         constr_n = f"CapacityVtype_{i}_InnerRing"
         model.addConstr(params.c_density * params.gamma * l[i][inner_ring_idx]
-                        <= c_dict[i], constr_n)  # the paper seems wrong: '=='
+                        == c_dict[i], constr_n)  # the paper seems wrong: '=='
 
     # inner ring cost function
     i_cost = LinExpr()
