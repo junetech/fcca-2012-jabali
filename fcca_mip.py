@@ -13,6 +13,7 @@ INTEGER = GRB.INTEGER
 CONTINUOUS = GRB.CONTINUOUS
 quicksum = gp.quicksum  # xsum <-> quicksum
 QuadExpr = gp.QuadExpr
+LinExpr = gp.LinExpr
 MINIMIZE = GRB.MINIMIZE
 
 
@@ -100,25 +101,6 @@ def make_fcca_mip_model(params: ParamsFCCA) -> Model:
                         for i in veh_type_list)
         model.addConstr(lhs <= rhs, f"DurationLimitOuterRing_{j}")
 
-    # outer ring cost function
-    o_cost = QuadExpr()
-    # fixed fleet cost
-    o_cost += quicksum(quicksum(f_dict[i] * n[i][j] for i in veh_type_list)
-                       for j in outer_ring_idx_list)
-    # total line-haul cost for the outer rings
-    ol_coeff = 2 * math.pi / (params.w_star * params.speed)
-    o_cost += quicksum(quicksum(ol_coeff * d_dict[i] * (y[i][j] + l[i][j]/2)
-                                * (y[i][j] + l[i][j]/2)
-                                for j in outer_ring_idx_list)
-                       for i in veh_type_list)
-    # total traverse cost
-    ot_coeff = 2 * params.c_density * math.pi / params.speed * \
-        math.sqrt(2/(3*params.c_density))
-    o_cost += quicksum(quicksum((d_dict[i] * (y[i][j] + l[i][j]/2)
-                                * l[i][j] * ot_coeff)
-                                for j in outer_ring_idx_list)
-                       for i in veh_type_list)
-
     # (12) each inner ring serviced by a single vehicle type except type 0
     model.addConstr(quicksum(x[i][inner_ring_idx]
                              for i in actual_veh_type_list)
@@ -136,21 +118,6 @@ def make_fcca_mip_model(params: ParamsFCCA) -> Model:
         model.addConstr(params.c_density * params.gamma * l[i][inner_ring_idx]
                         <= c_dict[i], constr_n)  # the paper seems wrong: '=='
 
-    # inner ring cost function
-    i_cost = QuadExpr()
-    # fixed fleet cost
-    i_cost += quicksum(f_dict[i] * n[i][inner_ring_idx]
-                       for i in actual_veh_type_list)
-    # total line-haul cost for inner ring
-    il_coeff = 2 * math.pi / (params.speed * params.gamma)
-    i_cost += quicksum((d_dict[i] * l[i][inner_ring_idx]
-                        * l[i][inner_ring_idx] * il_coeff)
-                       for i in actual_veh_type_list)
-    # total traverse cost for inner ring
-    it_coeff = params.c_density * params.gamma * math.pi / (3 * params.speed)
-    i_cost += quicksum((d_dict[i] * l[i][inner_ring_idx]
-                        * l[i][inner_ring_idx] * it_coeff)
-                       for i in actual_veh_type_list)
 
     # (16) the entire region is serviced
     model.addConstr(quicksum(quicksum(l[i][j] for j in params.ring_idx_list)
@@ -164,9 +131,91 @@ def make_fcca_mip_model(params: ParamsFCCA) -> Model:
                              for i in veh_type_list) >= total_c,
                     "TotalCapacityEnough")
 
+    def make_optimal_obj() -> QuadExpr:
+        """
+        Returns:
+            QuadExpr -- quadratic objective in optimal MIP
+        """
+        # outer ring cost function
+        o_cost = QuadExpr()
+        # fixed fleet cost
+        o_cost += quicksum(quicksum(f_dict[i] * n[i][j] for i in veh_type_list)
+                           for j in outer_ring_idx_list)
+        # total line-haul cost for the outer rings
+        ol_coeff = 2 * math.pi / (params.w_star * params.speed)
+        o_cost += quicksum(quicksum(ol_coeff * d_dict[i] * (y[i][j] + l[i][j]/2)
+                                    * (y[i][j] + l[i][j]/2)
+                                    for j in outer_ring_idx_list)
+                           for i in veh_type_list)
+        # total traverse cost
+        ot_coeff = 2 * params.c_density * math.pi / params.speed * \
+            math.sqrt(2/(3*params.c_density))
+        o_cost += quicksum(quicksum((d_dict[i] * (y[i][j] + l[i][j]/2)
+                                    * l[i][j] * ot_coeff)
+                                    for j in outer_ring_idx_list)
+                           for i in veh_type_list)
+
+        # inner ring cost function
+        i_cost = QuadExpr()
+        # fixed fleet cost
+        i_cost += quicksum(f_dict[i] * n[i][inner_ring_idx]
+                           for i in actual_veh_type_list)
+        # total line-haul cost for inner ring
+        il_coeff = 2 * math.pi / (params.speed * params.gamma)
+        i_cost += quicksum((d_dict[i] * l[i][inner_ring_idx]
+                            * l[i][inner_ring_idx] * il_coeff)
+                           for i in actual_veh_type_list)
+        # total traverse cost for inner ring
+        it_coeff = params.c_density * params.gamma * math.pi / (3*params.speed)
+        i_cost += quicksum((d_dict[i] * l[i][inner_ring_idx]
+                            * l[i][inner_ring_idx] * it_coeff)
+                           for i in actual_veh_type_list)
+
+        return o_cost + i_cost
+
+    def make_l1_obj() -> QuadExpr:
+        """
+        Returns:
+            QuadExpr -- positive semidefinite function for objective of L1
+        """
+        actual_c_dict = {i: c_dict[i] for i in actual_veh_type_list}
+        largest_v_cap = max(actual_c_dict.values())
+        smallest_v_cap = min(actual_c_dict.values())
+        alpha = (smallest_v_cap * math.sqrt(6*params.c_density) /
+                 (largest_v_cap * params.gamma * params.c_density))
+        chi_prime = alpha * (2 * alpha + 2 -
+                             math.sqrt(4 * alpha * alpha + 8 * alpha + 3))
+
+        _cost = QuadExpr()
+        _cost += quicksum(quicksum(f_dict[i] * n[i][j] for i in veh_type_list)
+                          for j in params.ring_idx_list)
+        t_coeff = 2 * math.pi / (params.w_star * params.speed)
+        _cost += quicksum(d_dict[i] *
+                          quicksum((y[i][j]*y[i][j] +
+                                    (2 - chi_prime/alpha) * y[i][j] * l[i][j]
+                                    + (chi_prime + 3/4) * l[i][j]*l[i][j])
+                                   for j in outer_ring_idx_list) * t_coeff
+                          for i in veh_type_list)
+        # inner ring cost function
+        i_cost = QuadExpr()
+        # total line-haul cost for inner ring
+        il_coeff = 2 * math.pi / (params.speed * params.gamma)
+        i_cost += quicksum((d_dict[i] * l[i][inner_ring_idx]
+                            * l[i][inner_ring_idx] * il_coeff)
+                           for i in actual_veh_type_list)
+        # total traverse cost for inner ring
+        it_coeff = params.c_density * params.gamma * math.pi / (3*params.speed)
+        i_cost += quicksum((d_dict[i] * l[i][inner_ring_idx]
+                            * l[i][inner_ring_idx] * it_coeff)
+                           for i in actual_veh_type_list)
+
+        return _cost + i_cost
+
+    # obj = make_optimal_obj()
+    obj = make_l1_obj()
     # Set minimize total cost objective
-    model.setObjective(o_cost + i_cost, MINIMIZE)
-    model.setParam("NonConvex", 2)  # for objective not positive semi-definite
+    model.setObjective(obj, MINIMIZE)
+    model.setParam("NonConvex", 1)  # for PSD objective
 
     return model
 
