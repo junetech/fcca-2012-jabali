@@ -47,7 +47,7 @@ def main():
                              metadata.veh_file_ext,
                              metadata.json_encoding)
     params_fcca.print_info()
-
+    params_fcca.amend_time_unit()
     fcca_model = make_fcca_mip_model(params_fcca)
     optimize_and_show_result(fcca_model, metadata)
 

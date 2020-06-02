@@ -5,7 +5,8 @@
     "c_density": 0.02,
     "service_time": 5.0,
     "service_time_unit": "minutes",
-    "route_duration_limit": 6.0,
+    "route_duration_limit": 480.0,
+    "route_duration_limit_unit": "minutes",
     "vehicle_types": ["t0", "t1", "t2", "t3"],
     "dummy_type": "t0"
 }

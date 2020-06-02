@@ -15,6 +15,7 @@ class ParamsEnv:
     service_time: float         # \mu
     service_time_unit: str
     route_duration_limit: float     # t
+    route_duration_limit_unit: str
     vehicle_types: List[str]    # Q = {0, ..., q}
     dummy_type: str
 
@@ -24,9 +25,8 @@ class ParamsEnv:
             _dict = json.load(f_data)
             for key, value in _dict.items():
                 self.__dict__[key] = value
-        self.amend_service_time()
 
-    def amend_service_time(self):
+    def amend_time_unit(self):
         """Set service_time value according to service_time_unit
         """
         if self.service_time_unit == "hours":
@@ -35,6 +35,12 @@ class ParamsEnv:
             self.service_time = self.service_time / 60.0
         elif self.service_time_unit == "seconds":
             self.service_time = self.service_time / 3600.0
+        if self.route_duration_limit_unit == "hours":
+            pass
+        elif self.route_duration_limit_unit == "minutes":
+            self.route_duration_limit = self.route_duration_limit / 60.0
+        elif self.route_duration_limit_unit == "seconds":
+            self.route_duration_limit = self.route_duration_limit / 3600.0
 
     def print_info(self):
         """terminal print of info

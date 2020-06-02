@@ -29,7 +29,6 @@ class ParamsFCCA(ParamsEnv):
             _dict = json.load(e_data)
             for key, value in _dict.items():
                 self.__dict__[key] = value
-        self.amend_service_time()
 
         self.veh_dict: Dict[str, ParamsVeh] = dict()
         for v_type in self.vehicle_types:
@@ -73,8 +72,9 @@ class ParamsFCCA(ParamsEnv):
     def calc_l_star(self):
         """Calculate and set value of l_star member
         """
-        _min_cap = min([v_ins.capacity for v_ins in self.veh_dict.values()])
-        self.l_star = _min_cap / (math.sqrt(6*self.c_density))
+        _min_cap = min([v_ins.capacity for v_ins in self.veh_dict.values()
+                        if v_ins.name != self.dummy_type])
+        self.l_star = _min_cap / math.sqrt(6*self.c_density)
 
     def apply_ring_count(self, ring_count: int):
         self.ring_count = ring_count
@@ -84,7 +84,7 @@ class ParamsFCCA(ParamsEnv):
         """Calculate and set value of gamma member
         """
         self.gamma = 0.95 * math.sqrt(3/(2*self.c_density))
-        # the paper seems wrong: it used math.sqrt(3/(2*c_density))
+        # TODO the paper seems wrong: it used math.sqrt(3/(2*c_density))
 
     def calc_total_customer(self):
         """Calculate and set value of total_customer member
