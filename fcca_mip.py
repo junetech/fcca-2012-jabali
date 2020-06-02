@@ -12,7 +12,7 @@ BINARY = GRB.BINARY
 INTEGER = GRB.INTEGER
 CONTINUOUS = GRB.CONTINUOUS
 quicksum = gp.quicksum  # xsum <-> quicksum
-LinExpr = gp.LinExpr
+QuadExpr = gp.QuadExpr
 MINIMIZE = GRB.MINIMIZE
 
 
@@ -39,16 +39,16 @@ def make_fcca_mip_model(params: ParamsFCCA) -> Model:
 
     # Variables
     # number of vehicles of type i assigned to ring j
-    n = [[model.addVar(vtype=INTEGER, name=f"n({i},{j})", lb=0)
+    n = [[model.addVar(vtype=INTEGER, name=f"n({i},{j+1})", lb=0)
           for j in params.ring_idx_list] for i in veh_type_list]
     # 1 if vehicle type i is assigned to ring j
-    x = [[model.addVar(vtype=BINARY, name=f"x({i},{j})")
+    x = [[model.addVar(vtype=BINARY, name=f"x({i},{j+1})")
           for j in params.ring_idx_list] for i in veh_type_list]
     # length of a segment in ring j
-    l = [[model.addVar(vtype=CONTINUOUS, name=f"l({i},{j})", lb=0.0)
+    l = [[model.addVar(vtype=CONTINUOUS, name=f"l({i},{j+1})", lb=0.0)
           for j in params.ring_idx_list] for i in veh_type_list]
     # distance(the depot -> the inner edge of ring j) traversed by vehicle i
-    y = [[model.addVar(vtype=CONTINUOUS, name=f"y({i},{j})", lb=0.0)
+    y = [[model.addVar(vtype=CONTINUOUS, name=f"y({i},{j+1})", lb=0.0)
           for j in params.ring_idx_list] for i in veh_type_list]
 
     # Constraints
@@ -101,7 +101,7 @@ def make_fcca_mip_model(params: ParamsFCCA) -> Model:
         model.addConstr(lhs <= rhs, f"DurationLimitOuterRing_{j}")
 
     # outer ring cost function
-    o_cost = LinExpr()
+    o_cost = QuadExpr()
     # fixed fleet cost
     o_cost += quicksum(quicksum(f_dict[i] * n[i][j] for i in veh_type_list)
                        for j in outer_ring_idx_list)
@@ -134,19 +134,19 @@ def make_fcca_mip_model(params: ParamsFCCA) -> Model:
     for i in actual_veh_type_list:
         constr_n = f"CapacityVtype_{i}_InnerRing"
         model.addConstr(params.c_density * params.gamma * l[i][inner_ring_idx]
-                        == c_dict[i], constr_n)  # the paper seems wrong: '=='
+                        <= c_dict[i], constr_n)  # the paper seems wrong: '=='
 
     # inner ring cost function
-    i_cost = LinExpr()
+    i_cost = QuadExpr()
     # fixed fleet cost
     i_cost += quicksum(f_dict[i] * n[i][inner_ring_idx]
                        for i in actual_veh_type_list)
-    # total line-haul cost for the outer rings
+    # total line-haul cost for inner ring
     il_coeff = 2 * math.pi / (params.speed * params.gamma)
     i_cost += quicksum((d_dict[i] * l[i][inner_ring_idx]
                         * l[i][inner_ring_idx] * il_coeff)
                        for i in actual_veh_type_list)
-    # total traverse cost
+    # total traverse cost for inner ring
     it_coeff = params.c_density * params.gamma * math.pi / (3 * params.speed)
     i_cost += quicksum((d_dict[i] * l[i][inner_ring_idx]
                         * l[i][inner_ring_idx] * it_coeff)
