@@ -76,8 +76,8 @@ def make_fcca_mip_model(params: ParamsFCCA) -> Model:
     # (8) minimum distance(the depot -> the inner edge of ring j)
     for i in veh_type_list:
         for j in outer_ring_idx_list:
-            lhs = quicksum(y[m][j-1] + l[i][j-1] for m in veh_type_list)
-            lhs += -big_M * (1 - x[i][j])
+            lhs = quicksum(y[m][j-1] + l[m][j-1] for m in veh_type_list)
+            lhs += big_M * (x[i][j] - 1)
             model.addConstr(lhs <= y[i][j],
                             f"MinDistanceVtype_{i}_OuterRing_{j}")
 
@@ -116,7 +116,7 @@ def make_fcca_mip_model(params: ParamsFCCA) -> Model:
         constr_n = f"CapacityVtype_{i}_InnerRing"
         model.addConstr(params.c_density * params.gamma * l[i][inner_ring_idx]
                         == c_dict[i] * x[i][inner_ring_idx], constr_n)
-        # the paper seems wrong: '== c_dict[i]'
+        # TODO the paper seems wrong: '== c_dict[i]'
 
     # (16) the entire region is serviced
     model.addConstr(quicksum(quicksum(l[i][j] for j in params.ring_idx_list)
@@ -192,7 +192,7 @@ def make_fcca_mip_model(params: ParamsFCCA) -> Model:
         _cost += quicksum(d_dict[i] *
                           quicksum((y[i][j]*y[i][j] +
                                     (2 - chi_prime/alpha) * y[i][j] * l[i][j]
-                                    + (chi_prime + 3/4) * l[i][j]*l[i][j])
+                                    + (3/4 + chi_prime) * l[i][j]*l[i][j])
                                    for j in outer_ring_idx_list) * t_coeff
                           for i in veh_type_list)
         # inner ring cost function
@@ -231,7 +231,7 @@ def main():
                              veh_file_postfix,
                              veh_file_ext,
                              encoding)
-
+    params_fcca.amend_time_unit()
     fcca_model = make_fcca_mip_model(params_fcca)
 
     # write to .lp file
