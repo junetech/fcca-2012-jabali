@@ -60,8 +60,8 @@ def make_fcca_mip_model(params: ParamsFCCA) -> Model:
             model.addConstr((math.pi / params.w_star)*(y[i][j] + l[i][j]/2)
                             <= n[i][j], constr_n)
 
-    # (4) each outer ring serviced by a single vehicle type
-    for j in outer_ring_idx_list:
+    # (4) each ring serviced by a single vehicle type
+    for j in params.ring_idx_list:
         model.addConstr(quicksum(x[i][j] for i in veh_type_list) == 1,
                         f"OnlyOneVtypeOuterRing_{j}")
 
@@ -80,7 +80,6 @@ def make_fcca_mip_model(params: ParamsFCCA) -> Model:
             lhs += -big_M * (1 - x[i][j])
             model.addConstr(lhs <= y[i][j],
                             f"MinDistanceVtype_{i}_OuterRing_{j}")
-        # y[i][0] == 0 constraint omitted
 
     # (9) outer ring capacity constraints
     for i in veh_type_list:
@@ -116,8 +115,8 @@ def make_fcca_mip_model(params: ParamsFCCA) -> Model:
     for i in actual_veh_type_list:
         constr_n = f"CapacityVtype_{i}_InnerRing"
         model.addConstr(params.c_density * params.gamma * l[i][inner_ring_idx]
-                        <= c_dict[i], constr_n)  # the paper seems wrong: '=='
-
+                        == c_dict[i] * x[i][inner_ring_idx], constr_n)
+        # the paper seems wrong: '== c_dict[i]'
 
     # (16) the entire region is serviced
     model.addConstr(quicksum(quicksum(l[i][j] for j in params.ring_idx_list)

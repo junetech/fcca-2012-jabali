@@ -46,6 +46,7 @@ def main():
                              metadata.veh_file_postfix,
                              metadata.veh_file_ext,
                              metadata.json_encoding)
+    params_fcca.print_info()
 
     fcca_model = make_fcca_mip_model(params_fcca)
     optimize_and_show_result(fcca_model, metadata)
