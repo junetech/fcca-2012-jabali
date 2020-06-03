@@ -9,7 +9,7 @@ from params_veh import ParamsVeh
 
 
 class ParamsFCCA(ParamsEnv):
-    """Parameters and parameter-calculating methods for FCAA MIP
+    """Parameters and parameter-calculating methods for FCCA MIP
     """
     ring_id_list: List[int]
     actual_veh_type_list: List[str]

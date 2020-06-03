@@ -2,5 +2,5 @@
     "name": "t3",
     "capacity": 10,
     "fixed_cost": 70.0,
-    "var_cost": 0.8
+    "var_cost": 48.0
 }
