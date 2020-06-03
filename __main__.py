@@ -43,7 +43,7 @@ def optimize_and_show_result(fcca_model,
 
     # show results
     print("Optimize method finished")
-    show_result(fcca_model, params)
+    show_result(fcca_model, params, metadata.model)
 
 
 def main():

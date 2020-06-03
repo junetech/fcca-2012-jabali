@@ -228,7 +228,8 @@ def make_fcca_mip_model(params: ParamsFCCA, model_str: str) -> Model:
     return model
 
 
-def show_result(model: Model, params: ParamsFCCA):
+def show_result(model: Model, params: ParamsFCCA,
+                model_str: str):
     """Summarize results
 
     Arguments:
@@ -242,7 +243,7 @@ def show_result(model: Model, params: ParamsFCCA):
             v_dict[v.varName] = v.x
         else:
             v_dict[v.varName] = 0
-    result = ResultFCCA(params.vehicle_types)
+    result = ResultFCCA(params, model_str)
     for i in params.vehicle_types:
         for j in params.ring_id_list:
             n_name = params.n_name_dict[i][j]
@@ -262,6 +263,8 @@ def show_result(model: Model, params: ParamsFCCA):
                 print(_str)
 
     # cost calculation
+    result.calc_all_costs(params, model_str)
+    result.print_cost_info()
 
 
 def main():
