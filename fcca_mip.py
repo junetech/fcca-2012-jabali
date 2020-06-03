@@ -230,11 +230,9 @@ def show_result(model: Model, params: ParamsFCCA):
         model {Model} -- model with at least feasible solution found
         params {ParamsFCCA}
     """
-    from pprint import pprint
     v_dict: Dict[str, Any] = dict()
     for v in model.getVars():
         if v.x >= 0.0001:
-            print(f"{v.varName}, {v.x}")
             v_dict[v.varName] = v.x
         else:
             v_dict[v.varName] = 0
@@ -258,10 +256,10 @@ def show_result(model: Model, params: ParamsFCCA):
             l_dict[i][j] = v_dict[l_name]
             y_dict[i][j] = v_dict[y_name]
 
-    pprint(n_dict)
-    pprint(x_dict)
-    pprint(l_dict)
-    pprint(y_dict)
+            if x_dict[i][j] == 1:
+                _str = f"{x_name}: {x_dict[i][j]}, {n_name}: {n_dict[i][j]},"
+                _str += f" {l_name}: {l_dict[i][j]}, {y_name}: {y_dict[i][j]}"
+                print(_str)
 
 
 def main():
