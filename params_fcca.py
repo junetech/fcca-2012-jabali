@@ -18,13 +18,20 @@ class ParamsFCCA(ParamsEnv):
     f_dict: Dict[str, float]
     d_dict: Dict[str, float]
 
+    # variable name dictionary: v_type -> ring_id -> name
+    n_name_dict: Dict[str, Dict[int, str]]
+    x_name_dict: Dict[str, Dict[int, str]]
+    l_name_dict: Dict[str, Dict[int, str]]
+    y_name_dict: Dict[str, Dict[int, str]]
+
+    # model constants derived
     w_star: float    # w^*: optimal width of the circular trapezoid
     l_star: float    # l^*: optimal width of the approximated rectangle
     ring_count: int  # k:   potential number of rings
     gamma: float     # gamma: Newell and Daganzo(1986)'s first ring approx.
     total_customer: int     # e
 
-    # MIQP objective parameters derived from others
+    # MIQP objective constants derived
     ol_coeff: float
     ot_coeff: float
     il_coeff: float
@@ -47,15 +54,17 @@ class ParamsFCCA(ParamsEnv):
             veh_filename = veh_file_postfix + v_type + veh_file_ext
             self.veh_dict[v_type] = ParamsVeh(veh_filename, encoding)
 
+        temp_ring_count = 5  # TODO: fixed temporarily for base case
+        self.apply_max_ring_count(temp_ring_count)
+        self.make_actual_veh_type_list()
         self.make_veh_capacity_dict()
         self.make_veh_fixed_cost_dict()
         self.make_veh_var_cost_dict()
-        self.make_actual_veh_type_list()
+
+        self.define_var_name_dicts()
 
         self.calc_w_star()
         self.calc_l_star()
-        temp_ring_count = 5  # TODO: fixed temporarily for base case
-        self.apply_max_ring_count(temp_ring_count)
         self.calc_gamma()
         self.calc_total_customer()
 
@@ -164,6 +173,24 @@ class ParamsFCCA(ParamsEnv):
         """
         self.d_dict = {v_type: self.veh_dict[v_type].var_cost
                        for v_type in self.vehicle_types}
+
+    def define_var_name_dicts(self):
+        """make dictionary of variable names
+        """
+        self.n_name_dict = dict()
+        self.x_name_dict = dict()
+        self.l_name_dict = dict()
+        self.y_name_dict = dict()
+        for i in self.vehicle_types:
+            self.n_name_dict[i] = dict()
+            self.x_name_dict[i] = dict()
+            self.l_name_dict[i] = dict()
+            self.y_name_dict[i] = dict()
+            for j in self.ring_id_list:
+                self.n_name_dict[i][j] = f"n({i},{j})"
+                self.x_name_dict[i][j] = f"x({i},{j})"
+                self.l_name_dict[i][j] = f"l({i},{j})"
+                self.y_name_dict[i][j] = f"y({i},{j})"
 
 
 def main():

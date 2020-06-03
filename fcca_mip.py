@@ -1,7 +1,7 @@
 """Define, optimize, and obtain results from FCCA MIP model
 """
 import math
-from typing import List
+from typing import List, Dict, Any
 import gurobipy as gp
 from gurobipy import GRB
 
@@ -42,19 +42,26 @@ def make_fcca_mip_model(params: ParamsFCCA) -> Model:
 
     # Variables
     # number of vehicles of type i assigned to ring j
-    n = {i: {j: model.addVar(vtype=INTEGER, name=f"n({i},{j})", lb=0)
+    n = {i: {j: model.addVar(vtype=INTEGER,
+                             name=params.n_name_dict[i][j],
+                             lb=0)
              for j in params.ring_id_list}
          for i in veh_type_list}
     # 1 if vehicle type i is assigned to ring j
-    x = {i: {j: model.addVar(vtype=BINARY, name=f"x({i},{j})")
+    x = {i: {j: model.addVar(vtype=BINARY,
+                             name=params.x_name_dict[i][j])
              for j in params.ring_id_list}
          for i in veh_type_list}
     # length of a segment in ring j
-    l = {i: {j: model.addVar(vtype=CONTINUOUS, name=f"l({i},{j})", lb=0.0)
+    l = {i: {j: model.addVar(vtype=CONTINUOUS,
+                             name=params.l_name_dict[i][j],
+                             lb=0.0)
              for j in params.ring_id_list}
          for i in veh_type_list}
     # distance(the depot -> the inner edge of ring j) traversed by vehicle i
-    y = {i: {j: model.addVar(vtype=CONTINUOUS, name=f"y({i},{j})", lb=0.0)
+    y = {i: {j: model.addVar(vtype=CONTINUOUS,
+                             name=params.y_name_dict[i][j],
+                             lb=0.0)
              for j in params.ring_id_list}
          for i in veh_type_list}
 
@@ -214,6 +221,47 @@ def make_fcca_mip_model(params: ParamsFCCA) -> Model:
     model.setParam("NonConvex", 1)  # 2 for PSD objective
 
     return model
+
+
+def show_result(model: Model, params: ParamsFCCA):
+    """Summarize results
+
+    Arguments:
+        model {Model} -- model with at least feasible solution found
+        params {ParamsFCCA}
+    """
+    from pprint import pprint
+    v_dict: Dict[str, Any] = dict()
+    for v in model.getVars():
+        if v.x >= 0.0001:
+            print(f"{v.varName}, {v.x}")
+            v_dict[v.varName] = v.x
+        else:
+            v_dict[v.varName] = 0
+
+    n_dict: Dict[str, Dict[int, int]] = dict()
+    x_dict: Dict[str, Dict[int, int]] = dict()
+    l_dict: Dict[str, Dict[int, float]] = dict()
+    y_dict: Dict[str, Dict[int, float]] = dict()
+    for i in params.vehicle_types:
+        n_dict[i] = dict()
+        x_dict[i] = dict()
+        l_dict[i] = dict()
+        y_dict[i] = dict()
+        for j in params.ring_id_list:
+            n_name = params.n_name_dict[i][j]
+            x_name = params.x_name_dict[i][j]
+            l_name = params.l_name_dict[i][j]
+            y_name = params.y_name_dict[i][j]
+            n_dict[i][j] = round(v_dict[n_name])
+            x_dict[i][j] = round(v_dict[x_name])
+            l_dict[i][j] = v_dict[l_name]
+            y_dict[i][j] = v_dict[y_name]
+
+    pprint(n_dict)
+    pprint(x_dict)
+    pprint(l_dict)
+    pprint(y_dict)
 
 
 def main():

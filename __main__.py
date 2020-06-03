@@ -5,7 +5,7 @@ import datetime
 from time import time
 
 from params_fcca import ParamsFCCA
-from fcca_mip import make_fcca_mip_model
+from fcca_mip import make_fcca_mip_model, show_result
 
 
 class MasterMetadata:
@@ -24,16 +24,16 @@ class MasterMetadata:
                 self.__dict__[key] = value
 
 
-def optimize_and_show_result(fcca_model, metadata: MasterMetadata):
+def optimize_and_show_result(fcca_model,
+                             params: ParamsFCCA,
+                             metadata: MasterMetadata):
     # write to .lp file
     fcca_model.write(metadata.lp_filename)
     fcca_model.optimize()
 
     # show results
     print("Optimize method finished")
-    for v in fcca_model.getVars():
-        if v.x >= 0.0001:
-            print(f"{v.varName}, {v.x}")
+    show_result(fcca_model, params)
 
 
 def main():
@@ -49,7 +49,7 @@ def main():
     params_fcca.print_info()
     params_fcca.amend_time_unit()
     fcca_model = make_fcca_mip_model(params_fcca)
-    optimize_and_show_result(fcca_model, metadata)
+    optimize_and_show_result(fcca_model, params_fcca, metadata)
 
 
 if __name__ == "__main__":
