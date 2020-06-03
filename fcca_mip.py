@@ -11,7 +11,7 @@ Model = gp.Model
 BINARY = GRB.BINARY
 INTEGER = GRB.INTEGER
 CONTINUOUS = GRB.CONTINUOUS
-quicksum = gp.quicksum  # xsum <-> quicksum
+quicksum = gp.quicksum
 QuadExpr = gp.QuadExpr
 LinExpr = gp.LinExpr
 MINIMIZE = GRB.MINIMIZE
@@ -38,6 +38,7 @@ def make_fcca_mip_model(params: ParamsFCCA) -> Model:
     f_dict = params.make_veh_fixed_cost_dict()
     d_dict = params.make_veh_var_cost_dict()
     delta = params.c_density
+    total_c = params.total_customer
 
     # Variables
     # number of vehicles of type i assigned to ring j
@@ -71,7 +72,7 @@ def make_fcca_mip_model(params: ParamsFCCA) -> Model:
                         f"OnlyOneVtypeOuterRing_{j}")
 
     # (5), (6), (7) big-M constraints
-    big_M = 20 * params.radius  # TODO: using params.radius temporarily
+    big_M = params.radius + total_c
     for i in veh_type_list:
         for j in params.ring_id_list:
             model.addConstr(n[i][j] <= big_M * x[i][j], f"bigM_n_{i}_{j}")
@@ -129,7 +130,6 @@ def make_fcca_mip_model(params: ParamsFCCA) -> Model:
                     "EntireRegionServed")
 
     # (17) total capacity is enough for all customers
-    total_c = params.total_customer
     model.addConstr(quicksum(quicksum(c_dict[i] * n[i][j]
                                       for j in params.ring_id_list)
                              for i in veh_type_list) >= total_c,
