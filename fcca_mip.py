@@ -31,12 +31,12 @@ def make_fcca_mip_model(params: ParamsFCCA) -> Model:
 
     # local aliases
     veh_type_list: List[str] = params.vehicle_types
-    actual_veh_type_list: List[str] = params.make_actual_veh_type_list()
+    actual_veh_type_list: List[str] = params.actual_veh_type_list
     outer_ring_id_list: List[int] = params.ring_id_list[1:]
     inner_ring_id = params.ring_id_list[0]
-    c_dict = params.make_veh_capacity_dict()
-    f_dict = params.make_veh_fixed_cost_dict()
-    d_dict = params.make_veh_var_cost_dict()
+    c_dict = params.c_dict
+    f_dict = params.f_dict
+    d_dict = params.d_dict
     delta = params.c_density
     total_c = params.total_customer
 

@@ -11,9 +11,12 @@ from params_veh import ParamsVeh
 class ParamsFCCA(ParamsEnv):
     """Parameters and parameter-calculating methods for FCAA MIP
     """
-    veh_type_idx_list: List[int]
-    veh_type_idx_dict: Dict[int, str]  # index -> v_type
-    ring_idx_list: List[int]
+    ring_id_list: List[int]
+    actual_veh_type_list: List[str]
+    # vehicle type parameters dictionary
+    c_dict: Dict[str, int]
+    f_dict: Dict[str, float]
+    d_dict: Dict[str, float]
 
     w_star: float    # w^*: optimal width of the circular trapezoid
     l_star: float    # l^*: optimal width of the approximated rectangle
@@ -44,7 +47,11 @@ class ParamsFCCA(ParamsEnv):
             veh_filename = veh_file_postfix + v_type + veh_file_ext
             self.veh_dict[v_type] = ParamsVeh(veh_filename, encoding)
 
-        self.make_veh_type_idx_list()
+        self.make_veh_capacity_dict()
+        self.make_veh_fixed_cost_dict()
+        self.make_veh_var_cost_dict()
+        self.make_actual_veh_type_list()
+
         self.calc_w_star()
         self.calc_l_star()
         temp_ring_count = 5  # TODO: fixed temporarily for base case
@@ -52,33 +59,11 @@ class ParamsFCCA(ParamsEnv):
         self.calc_gamma()
         self.calc_total_customer()
 
-    def make_veh_type_idx_list(self):
-        """make list of index & dictionary for v_type
+    def make_actual_veh_type_list(self):
+        """set list of vehicle types except dummy type
         """
-        self.veh_type_idx_list = list()
-        self.veh_type_idx_dict = dict()
-        for idx, v_type in enumerate(self.vehicle_types):
-            self.veh_type_idx_list.append(idx)
-            self.veh_type_idx_dict[idx] = v_type
-
-    def make_idx_list_without_dummy(self) -> List[int]:
-        """
-        Returns:
-            List[int] -- v_type index without dummy
-        """
-        return_list: List[int] = list()
-        for idx in self.veh_type_idx_list:
-            v_type = self.veh_type_idx_dict[idx]
-            if v_type != self.dummy_type:
-                return_list.append(idx)
-        return return_list
-
-    def make_actual_veh_type_list(self) -> List[str]:
-        """
-        Returns:
-            List[str] -- list of vehicle types except dummy type
-        """
-        return [t for t in self.vehicle_types if t != self.dummy_type]
+        self.actual_veh_type_list = [t for t in self.vehicle_types
+                                     if t != self.dummy_type]
 
     def calc_w_star(self):
         """Calculate and set value of w_star member
@@ -137,8 +122,7 @@ class ParamsFCCA(ParamsEnv):
         """
         calculate and set coefficients & values for L1 objective function
         """
-        actual_c_dict = {i: self.make_veh_capacity_dict()[i]
-                         for i in self.make_actual_veh_type_list()}
+        actual_c_dict = {i: self.c_dict[i] for i in self.actual_veh_type_list}
         largest_v_cap = max(actual_c_dict.values())
         smallest_v_cap = min(actual_c_dict.values())
         self.alpha = (smallest_v_cap * math.sqrt(6.0 * self.c_density) /
@@ -163,29 +147,23 @@ class ParamsFCCA(ParamsEnv):
             v_ins = self.veh_dict[v_type]
             v_ins.print_info()
 
-    def make_veh_capacity_dict(self) -> Dict[str, int]:
+    def make_veh_capacity_dict(self):
+        """make capacity dictionary of vehicles
         """
-        Returns:
-            Dict[str, int] -- v_type -> capacity
-        """
-        return {v_type: self.veh_dict[v_type].capacity
-                for v_type in self.vehicle_types}
+        self.c_dict = {v_type: self.veh_dict[v_type].capacity
+                       for v_type in self.vehicle_types}
 
-    def make_veh_fixed_cost_dict(self) -> Dict[str, float]:
+    def make_veh_fixed_cost_dict(self):
+        """make fixed cost dictionary of vehicles
         """
-        Returns:
-            Dict[str, float] -- v_type -> fixed_cost
-        """
-        return {v_type: self.veh_dict[v_type].fixed_cost
-                for v_type in self.vehicle_types}
+        self.f_dict = {v_type: self.veh_dict[v_type].fixed_cost
+                       for v_type in self.vehicle_types}
 
-    def make_veh_var_cost_dict(self) -> Dict[str, float]:
+    def make_veh_var_cost_dict(self):
+        """make variable cost dictionary of vehicles
         """
-        Returns:
-            Dict[str, float] -- v_type -> var_cost
-        """
-        return {v_type: self.veh_dict[v_type].var_cost
-                for v_type in self.vehicle_types}
+        self.d_dict = {v_type: self.veh_dict[v_type].var_cost
+                       for v_type in self.vehicle_types}
 
 
 def main():
