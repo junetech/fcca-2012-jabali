@@ -21,6 +21,15 @@ class ParamsFCCA(ParamsEnv):
     gamma: float     # gamma: Newell and Daganzo(1986)'s first ring approx.
     total_customer: int     # e
 
+    # MIQP objective parameters derived from others
+    ol_coeff: float
+    ot_coeff: float
+    il_coeff: float
+    it_coeff: float
+    alpha: float
+    chi_p: float
+    l1_o_coeff: float
+
     def __init__(self, env_filename: str,
                  veh_file_postfix: str,
                  veh_file_ext: str,
@@ -91,6 +100,48 @@ class ParamsFCCA(ParamsEnv):
         """
         self.total_customer = \
             math.ceil(math.pi * self.radius * self.radius * self.c_density)
+
+    def calc_ol_coeff(self):
+        self.ol_coeff = 2 * math.pi / (self.w_star * self.speed)
+
+    def calc_ot_coeff(self):
+        self.ot_coeff = (2 * self.c_density * math.pi / self.speed
+                         * math.sqrt(2/(3*self.c_density)))
+
+    def calc_il_coeff(self):
+        self.il_coeff = 2 * math.pi / (self.speed * self.gamma)
+
+    def calc_it_coeff(self):
+        self.it_coeff = self.c_density * self.gamma * math.pi / (3*self.speed)
+
+    def calc_l1_o_coeff(self):
+        self.l1_o_coeff = 2 * math.pi / (self.w_star * self.speed)
+
+    def calc_optimal_obj_coeff(self):
+        """
+        calculate and set coefficients for optimal objective function
+        """
+        self.calc_ol_coeff()
+        self.calc_ot_coeff()
+        self.calc_il_coeff()
+        self.calc_it_coeff()
+
+    def calc_l1_obj_coeff(self):
+        """
+        calculate and set coefficients & values for L1 objective function
+        """
+        actual_c_dict = {i: self.make_veh_capacity_dict()[i]
+                         for i in self.make_idx_list_without_dummy()}
+        largest_v_cap = max(actual_c_dict.values())
+        smallest_v_cap = min(actual_c_dict.values())
+        self.alpha = (smallest_v_cap * math.sqrt(6.0 * self.c_density) /
+                      (largest_v_cap * self.gamma * self.c_density))
+        self.chi_p = self.alpha * (2.0 * self.alpha + 2.0 -
+                                   math.sqrt(4.0 * self.alpha * self.alpha +
+                                             8.0 * self.alpha + 3.0))
+        self.calc_l1_o_coeff()
+        self.calc_il_coeff()
+        self.calc_it_coeff()
 
     def print_info(self):
         """terminal print of info
