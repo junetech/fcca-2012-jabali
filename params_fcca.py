@@ -57,11 +57,6 @@ class ParamsFCCA(ParamsEnv):
         temp_ring_count = 5  # TODO: fixed temporarily for base case
         self.apply_max_ring_count(temp_ring_count)
         self.make_actual_veh_type_list()
-        self.make_veh_capacity_dict()
-        self.make_veh_fixed_cost_dict()
-        self.make_veh_var_cost_dict()
-
-        self.define_var_name_dicts()
 
         self.calc_w_star()
         self.calc_l_star()
@@ -151,10 +146,11 @@ class ParamsFCCA(ParamsEnv):
         for key in print_keys:
             value = self.__dict__[key]
             print(f"  {key}:\t{value}")
-        print("  veh_dict contents below")
+        print("  --veh_dict contents below--")
         for v_type in self.vehicle_types:
             v_ins = self.veh_dict[v_type]
             v_ins.print_info()
+        print("  --                       --")
 
     def make_veh_capacity_dict(self):
         """make capacity dictionary of vehicles
@@ -191,6 +187,12 @@ class ParamsFCCA(ParamsEnv):
                 self.x_name_dict[i][j] = f"x({i},{j})"
                 self.l_name_dict[i][j] = f"l({i},{j})"
                 self.y_name_dict[i][j] = f"y({i},{j})"
+
+    def make_mip_dicts(self):
+        self.make_veh_capacity_dict()
+        self.make_veh_fixed_cost_dict()
+        self.make_veh_var_cost_dict()
+        self.define_var_name_dicts()
 
 
 def main():

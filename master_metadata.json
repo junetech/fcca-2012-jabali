@@ -3,5 +3,8 @@
     "veh_file_postfix": "params_veh_",
     "veh_file_ext": ".json",
     "json_encoding": "utf-8",
-    "lp_filename": "fcca_mip.lp"
+    "lp_filename": "fcca_mip.lp",
+
+    "model": "U1",
+    "model_selection": ["U1", "L1"]
 }

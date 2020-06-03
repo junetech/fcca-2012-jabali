@@ -6,6 +6,7 @@ import gurobipy as gp
 from gurobipy import GRB
 
 from params_fcca import ParamsFCCA
+from result_fcca import ResultFCCA
 
 Model = gp.Model
 BINARY = GRB.BINARY
@@ -17,7 +18,7 @@ LinExpr = gp.LinExpr
 MINIMIZE = GRB.MINIMIZE
 
 
-def make_fcca_mip_model(params: ParamsFCCA) -> Model:
+def make_fcca_mip_model(params: ParamsFCCA, model_str: str) -> Model:
     """Define Model instance for MIP formulation of FCCA
 
     Arguments:
@@ -214,11 +215,15 @@ def make_fcca_mip_model(params: ParamsFCCA) -> Model:
 
         return o_cost + i_cost
 
-    # obj = make_optimal_obj()
-    obj = make_l1_obj()
+    if model_str == "U1":
+        obj = make_optimal_obj()
+        model.setParam("NonConvex", 2)
+    elif model_str == "L1":
+        obj = make_l1_obj()
+    else:
+        raise ValueError(f"Wrong model type input({model_str})")
     # Set minimize total cost objective
     model.setObjective(obj, MINIMIZE)
-    model.setParam("NonConvex", 1)  # 2 for PSD objective
 
     return model
 
@@ -230,36 +235,33 @@ def show_result(model: Model, params: ParamsFCCA):
         model {Model} -- model with at least feasible solution found
         params {ParamsFCCA}
     """
+    # variable value retrieval
     v_dict: Dict[str, Any] = dict()
     for v in model.getVars():
         if v.x >= 0.0001:
             v_dict[v.varName] = v.x
         else:
             v_dict[v.varName] = 0
-
-    n_dict: Dict[str, Dict[int, int]] = dict()
-    x_dict: Dict[str, Dict[int, int]] = dict()
-    l_dict: Dict[str, Dict[int, float]] = dict()
-    y_dict: Dict[str, Dict[int, float]] = dict()
+    result = ResultFCCA(params.vehicle_types)
     for i in params.vehicle_types:
-        n_dict[i] = dict()
-        x_dict[i] = dict()
-        l_dict[i] = dict()
-        y_dict[i] = dict()
         for j in params.ring_id_list:
             n_name = params.n_name_dict[i][j]
             x_name = params.x_name_dict[i][j]
             l_name = params.l_name_dict[i][j]
             y_name = params.y_name_dict[i][j]
-            n_dict[i][j] = round(v_dict[n_name])
-            x_dict[i][j] = round(v_dict[x_name])
-            l_dict[i][j] = v_dict[l_name]
-            y_dict[i][j] = v_dict[y_name]
+            result.n_dict[i][j] = round(v_dict[n_name])
+            result.x_dict[i][j] = round(v_dict[x_name])
+            result.l_dict[i][j] = v_dict[l_name]
+            result.y_dict[i][j] = v_dict[y_name]
 
-            if x_dict[i][j] == 1:
-                _str = f"{x_name}: {x_dict[i][j]}, {n_name}: {n_dict[i][j]},"
-                _str += f" {l_name}: {l_dict[i][j]}, {y_name}: {y_dict[i][j]}"
+            if result.x_dict[i][j] == 1:
+                _str = f"{x_name}: {result.x_dict[i][j]},"
+                _str += f" {n_name}: {result.n_dict[i][j]},"
+                _str += f" {l_name}: {result.l_dict[i][j]},"
+                _str += f" {y_name}: {result.y_dict[i][j]}"
                 print(_str)
+
+    # cost calculation
 
 
 def main():
@@ -275,6 +277,7 @@ def main():
                              veh_file_ext,
                              encoding)
     params_fcca.amend_time_unit()
+    params_fcca.make_mip_dicts()
     fcca_model = make_fcca_mip_model(params_fcca)
 
     # write to .lp file
