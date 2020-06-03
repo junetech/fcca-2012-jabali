@@ -2,7 +2,7 @@
 """
 import json
 import math
-from typing import Dict, List
+from typing import List, Dict
 
 from params_env import ParamsEnv
 from params_veh import ParamsVeh
@@ -48,7 +48,7 @@ class ParamsFCCA(ParamsEnv):
         self.calc_w_star()
         self.calc_l_star()
         temp_ring_count = 5  # TODO: fixed temporarily for base case
-        self.apply_ring_count(temp_ring_count)
+        self.apply_max_ring_count(temp_ring_count)
         self.calc_gamma()
         self.calc_total_customer()
 
@@ -73,6 +73,13 @@ class ParamsFCCA(ParamsEnv):
                 return_list.append(idx)
         return return_list
 
+    def make_actual_veh_type_list(self) -> List[str]:
+        """
+        Returns:
+            List[str] -- list of vehicle types except dummy type
+        """
+        return [t for t in self.vehicle_types if t != self.dummy_type]
+
     def calc_w_star(self):
         """Calculate and set value of w_star member
         """
@@ -85,9 +92,9 @@ class ParamsFCCA(ParamsEnv):
                         if v_ins.name != self.dummy_type])
         self.l_star = _min_cap / math.sqrt(6*self.c_density)
 
-    def apply_ring_count(self, ring_count: int):
-        self.ring_count = ring_count
-        self.ring_idx_list = [i for i in range(self.ring_count)]
+    def apply_max_ring_count(self, max_ring_count: int):
+        self.max_ring_count = max_ring_count
+        self.ring_id_list = [i+1 for i in range(max_ring_count)]
 
     def calc_gamma(self):
         """Calculate and set value of gamma member
@@ -131,7 +138,7 @@ class ParamsFCCA(ParamsEnv):
         calculate and set coefficients & values for L1 objective function
         """
         actual_c_dict = {i: self.make_veh_capacity_dict()[i]
-                         for i in self.make_idx_list_without_dummy()}
+                         for i in self.make_actual_veh_type_list()}
         largest_v_cap = max(actual_c_dict.values())
         smallest_v_cap = min(actual_c_dict.values())
         self.alpha = (smallest_v_cap * math.sqrt(6.0 * self.c_density) /
@@ -156,29 +163,29 @@ class ParamsFCCA(ParamsEnv):
             v_ins = self.veh_dict[v_type]
             v_ins.print_info()
 
-    def make_veh_capacity_dict(self) -> Dict[int, int]:
+    def make_veh_capacity_dict(self) -> Dict[str, int]:
         """
         Returns:
-            Dict[int, int] -- v_type_idx -> capacity
+            Dict[str, int] -- v_type -> capacity
         """
-        return {idx: self.veh_dict[v_type].capacity
-                for idx, v_type in enumerate(self.vehicle_types)}
+        return {v_type: self.veh_dict[v_type].capacity
+                for v_type in self.vehicle_types}
 
-    def make_veh_fixed_cost_dict(self) -> Dict[int, float]:
+    def make_veh_fixed_cost_dict(self) -> Dict[str, float]:
         """
         Returns:
-            Dict[int, int] -- v_type_idx -> fixed_cost
+            Dict[str, float] -- v_type -> fixed_cost
         """
-        return {idx: self.veh_dict[v_type].fixed_cost
-                for idx, v_type in enumerate(self.vehicle_types)}
+        return {v_type: self.veh_dict[v_type].fixed_cost
+                for v_type in self.vehicle_types}
 
-    def make_veh_var_cost_dict(self) -> Dict[int, float]:
+    def make_veh_var_cost_dict(self) -> Dict[str, float]:
         """
         Returns:
-            Dict[int, int] -- v_type_idx -> var_cost
+            Dict[str, float] -- v_type -> var_cost
         """
-        return {idx: self.veh_dict[v_type].var_cost
-                for idx, v_type in enumerate(self.vehicle_types)}
+        return {v_type: self.veh_dict[v_type].var_cost
+                for v_type in self.vehicle_types}
 
 
 def main():
