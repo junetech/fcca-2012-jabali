@@ -5,6 +5,6 @@
     "json_encoding": "utf-8",
     "lp_filename": "fcca_mip.lp",
 
-    "model": "U1",
+    "model": "L1",
     "model_selection": ["U1", "L1"]
 }

@@ -51,14 +51,14 @@ class ResultFCCA:
 
     def define_coeffs(self, params: ParamsFCCA,
                       model_str: str):
-        print(f"{params.ol_coeff} == {params.ot_coeff}: {params.ol_coeff == params.ot_coeff}")
-        self.o_coeff = params.ol_coeff
         self.il_coeff = params.il_coeff
         self.it_coeff = params.it_coeff
+        if model_str == "U1":
+            self.o_coeff = params.ol_coeff
         if model_str == "L1":
             self.o_coeff = params.l1_o_coeff
-            self.prod_coeff = 1 - ((params.chi_p / params.alpha) / 2)
-            self.l_sq_coeff = 1 + (4 / (3 * params.chi_p))
+            self.prod_coeff = 1 - (params.chi_p / params.alpha)/2
+            self.l_sq_coeff = 1 + params.chi_p *(4/3)
 
     def calc_f_costs(self, params: ParamsFCCA):
         """fill in f_cost_dict
