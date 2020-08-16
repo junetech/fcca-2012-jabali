@@ -12,6 +12,7 @@ from fcca_mip import make_fcca_mip_model, show_result
 class MasterMetadata:
     """Data of data files
     """
+
     env_json_filename: str
     veh_file_postfix: str
     veh_file_ext: str
@@ -34,9 +35,9 @@ class MasterMetadata:
             self.model = last_model
 
 
-def optimize_and_show_result(fcca_model,
-                             params: ParamsFCCA,
-                             metadata: MasterMetadata):
+def optimize_and_show_result(
+    fcca_model, params: ParamsFCCA, metadata: MasterMetadata
+):
     # write to .lp file
     fcca_model.write(metadata.lp_filename)
     fcca_model.optimize()
@@ -52,10 +53,12 @@ def main():
     master_metadata_filename = "master_metadata.json"
     metadata = MasterMetadata(master_metadata_filename)
 
-    params_fcca = ParamsFCCA(metadata.env_json_filename,
-                             metadata.veh_file_postfix,
-                             metadata.veh_file_ext,
-                             metadata.json_encoding)
+    params_fcca = ParamsFCCA(
+        metadata.env_json_filename,
+        metadata.veh_file_postfix,
+        metadata.veh_file_ext,
+        metadata.json_encoding,
+    )
     params_fcca.print_info()
     params_fcca.amend_time_unit()
     params_fcca.make_mip_dicts()

@@ -18,6 +18,7 @@ class ParamsFCCA(ParamsEnv):
     c_dict: Dict[str, int]
     f_dict: Dict[str, float]
     d_dict: Dict[str, float]
+    t_dict: Dict[str, float]
 
     # variable name dictionary: v_type -> ring_id -> name
     n_name_dict: Dict[str, Dict[int, str]]
@@ -199,6 +200,14 @@ class ParamsFCCA(ParamsEnv):
             for v_type in self.vehicle_types
         }
 
+    def make_veh_route_duration_limit_dict(self):
+        """make route duration limit dictionary of vehicles
+        """
+        self.t_dict = {
+            v_type: self.veh_dict[v_type].route_duration_limit
+            for v_type in self.vehicle_types
+        }
+
     def define_var_name_dicts(self):
         """make dictionary of variable names
         """
@@ -221,6 +230,7 @@ class ParamsFCCA(ParamsEnv):
         self.make_veh_capacity_dict()
         self.make_veh_fixed_cost_dict()
         self.make_veh_var_cost_dict()
+        self.make_veh_route_duration_limit_dict()
         self.define_var_name_dicts()
 
 

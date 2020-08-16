@@ -2,5 +2,6 @@
     "name": "t1",
     "capacity": 20,
     "fixed_cost": 100.0,
-    "var_cost": 63.0
+    "var_cost": 63.0,
+    "route_duration_limit": 8.0
 }

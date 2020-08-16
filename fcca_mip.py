@@ -42,6 +42,7 @@ def make_fcca_mip_model(params: ParamsFCCA, model_str: str) -> Model:
     c_dict = params.c_dict
     f_dict = params.f_dict
     d_dict = params.d_dict
+    t_dict = params.t_dict
     delta = params.c_density
     total_c = params.total_customer
 
@@ -125,22 +126,24 @@ def make_fcca_mip_model(params: ParamsFCCA, model_str: str) -> Model:
             model.addConstr(lhs <= c_dict[i], constr_n)
 
     # (10) duration limit constraints
+    # change from Jabali et al. 2012:
+    # calculated only for actual vehicles(excluded dummy type)
+    # calculated for each actual vehicle types
     for j in outer_ring_id_list:
-        rhs = params.route_duration_limit * params.speed / 2
-        lhs = quicksum(y[i][j] + l[i][j] / 2 for i in veh_type_list)
-        lhs += quicksum(
-            delta * params.w_star * l[i][j] * math.sqrt(2 / (3 * delta))
-            for i in veh_type_list
-        )
-        lhs += quicksum(
-            delta
-            * params.w_star
-            * l[i][j]
-            * params.service_time
-            * params.speed
-            for i in veh_type_list
-        )
-        model.addConstr(lhs <= rhs, f"DurationLimitOuterRing_{j}")
+        for i in actual_veh_type_list:
+            rhs = t_dict[i] * params.speed / 2
+            lhs = y[i][j] + l[i][j] / 2
+            lhs += delta * params.w_star * l[i][j] * math.sqrt(2 / (3 * delta))
+            lhs += (
+                delta
+                * params.w_star
+                * l[i][j]
+                * params.service_time
+                * params.speed
+            )
+            model.addConstr(
+                lhs <= rhs, f"DurationLimitVtype_{i}_OuterRing_{j}"
+            )
 
     # (12) inner ring serviced by a single vehicle type except dummy type
     model.addConstr(

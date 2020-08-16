@@ -10,7 +10,8 @@ class ParamsVeh:
     name: str
     capacity: int  # c_i
     fixed_cost: float  # f_i
-    var_cost: float  # d_i
+    var_cost: float  # d_i: $/hour
+    route_duration_limit: float  # t_i: hours
 
     def __init__(self, filename: str, encoding: str):
         with open(filename, encoding=encoding) as f_data:

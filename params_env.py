@@ -15,8 +15,6 @@ class ParamsEnv:
     c_density: float  # \delta
     service_time: float  # \mu
     service_time_unit: str
-    route_duration_limit: float  # t
-    route_duration_limit_unit: str
     vehicle_types: List[str]  # Q = {0, ..., q}
     dummy_type: str
 
@@ -35,12 +33,6 @@ class ParamsEnv:
             self.service_time = self.service_time / 60.0
         elif self.service_time_unit == "seconds":
             self.service_time = self.service_time / 3600.0
-        if self.route_duration_limit_unit == "hours":
-            pass
-        elif self.route_duration_limit_unit == "minutes":
-            self.route_duration_limit = self.route_duration_limit / 60.0
-        elif self.route_duration_limit_unit == "seconds":
-            self.route_duration_limit = self.route_duration_limit / 3600.0
 
     def print_info(self):
         """terminal print of info
