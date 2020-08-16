@@ -64,7 +64,7 @@ class ResultFCCA:
         Args:
             params (ParamsFCCA)
         """
-        for i in self.veh_type_list:
+        for i in self.actual_veh_type_list:
             for j in self.outer_ring_id_list:
                 self.f_cost_dict[i][j] = params.f_dict[i] * self.n_dict[i][j]
         for i in self.actual_veh_type_list:
@@ -78,7 +78,7 @@ class ResultFCCA:
 
     def calc_l_costs(self, params: ParamsFCCA, model_str: str):
         if model_str == "U1":
-            for i in self.veh_type_list:
+            for i in self.actual_veh_type_list:
                 for j in self.outer_ring_id_list:
                     if self.x_dict[i][j] == 0:
                         continue
@@ -108,7 +108,7 @@ class ResultFCCA:
                     * params.d_dict[i]
                 )
         elif model_str == "L1":
-            for i in self.veh_type_list:
+            for i in self.actual_veh_type_list:
                 for j in self.outer_ring_id_list:
                     if self.x_dict[i][j] == 0:
                         continue
@@ -147,7 +147,7 @@ class ResultFCCA:
 
     def calc_t_costs(self, params: ParamsFCCA, model_str: str):
         if model_str == "U1":
-            for i in self.veh_type_list:
+            for i in self.actual_veh_type_list:
                 for j in self.outer_ring_id_list:
                     if self.x_dict[i][j] == 0:
                         continue
@@ -174,7 +174,7 @@ class ResultFCCA:
                     * params.d_dict[i]
                 )
         elif model_str == "L1":
-            for i in self.veh_type_list:
+            for i in self.actual_veh_type_list:
                 for j in self.outer_ring_id_list:
                     if self.x_dict[i][j] == 0:
                         continue

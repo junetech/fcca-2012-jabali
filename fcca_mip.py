@@ -333,21 +333,23 @@ def show_result(model: Model, params: ParamsFCCA, model_str: str):
             v_dict[v.varName] = 0
     result = ResultFCCA(params, model_str)
     for i in params.vehicle_types:
+        if i == params.dummy_type:
+            continue
         for j in params.ring_id_list:
             n_name = params.n_name_dict[i][j]
             x_name = params.x_name_dict[i][j]
-            l_name = params.l_name_dict[i][j]
             y_name = params.y_name_dict[i][j]
+            l_name = params.l_name_dict[i][j]
             result.n_dict[i][j] = round(v_dict[n_name])
             result.x_dict[i][j] = round(v_dict[x_name])
-            result.l_dict[i][j] = v_dict[l_name]
             result.y_dict[i][j] = v_dict[y_name]
+            result.l_dict[i][j] = v_dict[l_name]
 
             if result.x_dict[i][j] == 1:
                 _str = f"{x_name}: {result.x_dict[i][j]},"
                 _str += f" {n_name}: {result.n_dict[i][j]},"
-                _str += f" {l_name}: {result.l_dict[i][j]},"
-                _str += f" {y_name}: {result.y_dict[i][j]}"
+                _str += f" {y_name}: {result.y_dict[i][j]},"
+                _str += f" {l_name}: {result.l_dict[i][j]}"
                 print(_str)
 
     # cost calculation
