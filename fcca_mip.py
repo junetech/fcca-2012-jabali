@@ -102,18 +102,25 @@ def make_fcca_mip_model(params: ParamsFCCA, model_str: str) -> Model:
         )
 
     # (5), (6), (7) big-M constraints
-    big_M = params.radius + total_c
+    big_M_veh_count = total_c
+    big_M_radius = params.radius
     for i in veh_type_list:
         for j in params.ring_id_list:
-            model.addConstr(n[i][j] <= big_M * x[i][j], f"bigM_n_{i}_{j}")
-            model.addConstr(y[i][j] <= big_M * x[i][j], f"bigM_y_{i}_{j}")
-            model.addConstr(l[i][j] <= big_M * x[i][j], f"bigM_l_{i}_{j}")
+            model.addConstr(
+                n[i][j] <= big_M_veh_count * x[i][j], f"bigM_n_{i}_{j}"
+            )
+            model.addConstr(
+                y[i][j] <= big_M_radius * x[i][j], f"bigM_y_{i}_{j}"
+            )
+            model.addConstr(
+                l[i][j] <= big_M_radius * x[i][j], f"bigM_l_{i}_{j}"
+            )
 
     # (8) minimum distance(the depot -> the inner edge of ring j)
     for i in veh_type_list:
         for j in outer_ring_id_list:
             lhs = quicksum(y[m][j - 1] + l[m][j - 1] for m in veh_type_list)
-            lhs += big_M * (x[i][j] - 1)
+            lhs += big_M_radius * (x[i][j] - 1)
             model.addConstr(
                 lhs <= y[i][j], f"MinDistanceVtype_{i}_OuterRing_{j}"
             )
@@ -125,7 +132,7 @@ def make_fcca_mip_model(params: ParamsFCCA, model_str: str) -> Model:
             constr_n = f"CapacityVtype_{i}_OuterRing_{j}"
             model.addConstr(lhs <= c_dict[i], constr_n)
 
-    # (10) duration limit constraints
+    # (10) duration limit constraints of outer rings
     # change from Jabali et al. 2012:
     # calculated only for actual vehicles(excluded dummy type)
     # calculated for each actual vehicle types
@@ -144,6 +151,20 @@ def make_fcca_mip_model(params: ParamsFCCA, model_str: str) -> Model:
             model.addConstr(
                 lhs <= rhs, f"DurationLimitVtype_{i}_OuterRing_{j}"
             )
+    # duration limit constraints of inner ring
+    # newly added in Jabali et al. 2012
+    for i in actual_veh_type_list:
+        rhs = t_dict[i] * params.speed
+        # big_M for vehicles not assigned to inner ring
+        # TODO: make it tight
+        rhs += (1 - x[i][inner_ring_id]) * big_M_radius * 4
+        # inner ring line-haul travel time of a vehicle
+        lhs = 2 * l[i][inner_ring_id]
+        # inner ring transverse travel time of a vehicle
+        lhs += delta * params.gamma * params.gamma * l[i][inner_ring_id] / 3
+        model.addConstr(
+            lhs <= rhs, f"DurationLimitVtype_{i}_InnerRing",
+        )
 
     # (12) inner ring serviced by a single vehicle type except dummy type
     model.addConstr(

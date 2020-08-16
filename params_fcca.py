@@ -100,7 +100,6 @@ class ParamsFCCA(ParamsEnv):
         """Calculate and set value of gamma member
         """
         self.gamma = 0.95 * math.sqrt(3 / (2 * self.c_density))
-        # TODO the paper seems wrong: it used math.sqrt(3/(2*c_density))
 
     def calc_total_customer(self):
         """Calculate and set value of total_customer member
