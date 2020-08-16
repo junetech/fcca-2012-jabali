@@ -7,20 +7,20 @@ from typing import List
 class ParamsEnv:
     """Parameters loaded from params_env.json
     """
+
     # given parameters
     description: str
-    radius: float               # r
-    speed: float                # v
-    c_density: float            # \delta
-    service_time: float         # \mu
+    radius: float  # r
+    speed: float  # v
+    c_density: float  # \delta
+    service_time: float  # \mu
     service_time_unit: str
-    route_duration_limit: float     # t
+    route_duration_limit: float  # t
     route_duration_limit_unit: str
-    vehicle_types: List[str]    # Q = {0, ..., q}
+    vehicle_types: List[str]  # Q = {0, ..., q}
     dummy_type: str
 
-    def __init__(self, filename: str,
-                 encoding: str):
+    def __init__(self, filename: str, encoding: str):
         with open(filename, encoding=encoding) as f_data:
             _dict = json.load(f_data)
             for key, value in _dict.items():
