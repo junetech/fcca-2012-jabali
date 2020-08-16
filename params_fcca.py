@@ -66,7 +66,22 @@ class ParamsFCCA(ParamsEnv):
         self.calc_w_star()
         self.calc_l_star()
         self.calc_gamma()
+        self.enough_radius_test()
         self.calc_total_customer()
+
+    def enough_radius_test(self):
+        """Check if the radius value is enough
+        due to inner ring radius approximation by constraint (14)
+        """
+        min_capacity = min(
+            self.veh_dict[v_type].capacity
+            for v_type in self.actual_veh_type_list
+        )
+        min_inner_ring_rad = min_capacity / (self.c_density * self.gamma)
+        if self.radius < min_inner_ring_rad:
+            _str = f"Radius {self.radius} is not enough for inner ring approx:"
+            _str += f"should be >= {min_inner_ring_rad}"
+            raise ValueError(_str)
 
     def make_actual_veh_type_list(self):
         """set list of vehicle types except dummy type
@@ -122,11 +137,15 @@ class ParamsFCCA(ParamsEnv):
 
     def calc_il_coeff(self):
         self.il_coeff = 2 * math.pi / (self.speed * self.gamma)
+        # TODO: check
+        # self.il_coeff = 2 / self.speed
 
     def calc_it_coeff(self):
         self.it_coeff = (
             self.c_density * self.gamma * math.pi / (3 * self.speed)
         )
+        # TODO: check
+        # self.c_density * self.gamma * self.gamma / (3 * self.speed)
 
     def calc_l1_o_coeff(self):
         self.l1_o_coeff = 2 * math.pi / (self.w_star * self.speed)

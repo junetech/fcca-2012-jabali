@@ -151,20 +151,20 @@ def make_fcca_mip_model(params: ParamsFCCA, model_str: str) -> Model:
             model.addConstr(
                 lhs <= rhs, f"DurationLimitVtype_{i}_OuterRing_{j}"
             )
-    # duration limit constraints of inner ring
-    # newly added in Jabali et al. 2012
-    for i in actual_veh_type_list:
-        rhs = t_dict[i] * params.speed
-        # big_M for vehicles not assigned to inner ring
-        # TODO: make it tight
-        rhs += (1 - x[i][inner_ring_id]) * big_M_radius * 4
-        # inner ring line-haul travel time of a vehicle
-        lhs = 2 * l[i][inner_ring_id]
-        # inner ring transverse travel time of a vehicle
-        lhs += delta * params.gamma * params.gamma * l[i][inner_ring_id] / 3
-        model.addConstr(
-            lhs <= rhs, f"DurationLimitVtype_{i}_InnerRing",
-        )
+    # # duration limit constraints of inner ring
+    # # newly added in Jabali et al. 2012
+    # for i in actual_veh_type_list:
+    #     rhs = t_dict[i] * params.speed
+    #     # big_M for vehicles not assigned to inner ring
+    #     # TODO: make it tight
+    #     rhs += (1 - x[i][inner_ring_id]) * big_M_radius * 4
+    #     # inner ring line-haul travel time of a vehicle
+    #     lhs = 2 * l[i][inner_ring_id]
+    #     # inner ring transverse travel time of a vehicle
+    #     lhs += delta * params.gamma * params.gamma * l[i][inner_ring_id] / 3
+    #     model.addConstr(
+    #         lhs <= rhs, f"DurationLimitVtype_{i}_InnerRing",
+    #     )
 
     # (12) inner ring serviced by a single vehicle type except dummy type
     model.addConstr(
@@ -260,6 +260,8 @@ def make_fcca_mip_model(params: ParamsFCCA, model_str: str) -> Model:
         i_cost += (
             quicksum(
                 (d_dict[i] * l[i][inner_ring_id] * l[i][inner_ring_id])
+                # TODO: check
+                # (d_dict[i] * l[i][inner_ring_id] * n[i][inner_ring_id])
                 for i in actual_veh_type_list
             )
             * params.il_coeff
@@ -268,6 +270,8 @@ def make_fcca_mip_model(params: ParamsFCCA, model_str: str) -> Model:
         i_cost += (
             quicksum(
                 (d_dict[i] * l[i][inner_ring_id] * l[i][inner_ring_id])
+                # TODO: check
+                # (d_dict[i] * l[i][inner_ring_id] * n[i][inner_ring_id])
                 for i in actual_veh_type_list
             )
             * params.it_coeff
