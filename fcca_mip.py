@@ -210,6 +210,10 @@ def make_fcca_mip_model(params: ParamsFCCA, model_str: str) -> Model:
         >= total_c,
         "TotalCapacityEnough",
     )
+    # Apply given number of availabie private vehicles
+    model.addConstr(
+        quicksum(n["t1"][j] for j in params.ring_id_list) <= 100, "t1 given"
+    )
 
     def make_optimal_obj() -> QuadExpr:
         """
