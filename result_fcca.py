@@ -94,7 +94,7 @@ class ResultFCCA:
                     self.l_cost_dict[i][j] = (
                         self.l_cost_dict[i][j]
                         * self.o_coeff
-                        * params.d_dict[i]
+                        * params.g_dict[i]
                     )
             for i in self.actual_veh_type_list:
                 if self.x_dict[i][self.irid] == 0:
@@ -105,7 +105,7 @@ class ResultFCCA:
                 self.l_cost_dict[i][self.irid] = (
                     self.l_cost_dict[i][self.irid]
                     * self.il_coeff
-                    * params.d_dict[i]
+                    * params.g_dict[i]
                 )
         elif model_str == "L1":
             for i in self.actual_veh_type_list:
@@ -127,7 +127,7 @@ class ResultFCCA:
                     self.l_cost_dict[i][j] = (
                         self.l_cost_dict[i][j]
                         * self.o_coeff
-                        * params.d_dict[i]
+                        * params.g_dict[i]
                     )
             for i in self.actual_veh_type_list:
                 if self.x_dict[i][self.irid] == 0:
@@ -138,7 +138,7 @@ class ResultFCCA:
                 self.l_cost_dict[i][self.irid] = (
                     self.l_cost_dict[i][self.irid]
                     * self.il_coeff
-                    * params.d_dict[i]
+                    * params.g_dict[i]
                 )
         self.l_total = 0.0
         for ring_dict in self.l_cost_dict.values():
@@ -160,7 +160,7 @@ class ResultFCCA:
                     self.t_cost_dict[i][j] = (
                         self.t_cost_dict[i][j]
                         * self.o_coeff
-                        * params.d_dict[i]
+                        * params.g_dict[i]
                     )
             for i in self.actual_veh_type_list:
                 if self.x_dict[i][self.irid] == 0:
@@ -171,7 +171,7 @@ class ResultFCCA:
                 self.t_cost_dict[i][self.irid] = (
                     self.t_cost_dict[i][self.irid]
                     * self.it_coeff
-                    * params.d_dict[i]
+                    * params.g_dict[i]
                 )
         elif model_str == "L1":
             for i in self.actual_veh_type_list:
@@ -190,7 +190,7 @@ class ResultFCCA:
                     self.t_cost_dict[i][j] = (
                         self.t_cost_dict[i][j]
                         * self.o_coeff
-                        * params.d_dict[i]
+                        * params.g_dict[i]
                     )
             for i in self.actual_veh_type_list:
                 if self.x_dict[i][self.irid] == 0:
@@ -201,7 +201,7 @@ class ResultFCCA:
                 self.t_cost_dict[i][self.irid] = (
                     self.t_cost_dict[i][self.irid]
                     * self.it_coeff
-                    * params.d_dict[i]
+                    * params.g_dict[i]
                 )
         self.t_total = 0.0
         for ring_dict in self.t_cost_dict.values():

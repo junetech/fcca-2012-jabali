@@ -1,7 +1,0 @@
-{
-    "name": "t3",
-    "capacity": 10,
-    "fixed_cost": 70.0,
-    "var_cost": 48.0,
-    "route_duration_limit": 8.0
-}

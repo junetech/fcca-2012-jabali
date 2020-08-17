@@ -1,0 +1,7 @@
+{
+    "name": "crowd",
+    "capacity": 30,
+    "fixed_cost": 0.0,
+    "var_cost": 18.0,
+    "route_duration_limit": 4.0
+}

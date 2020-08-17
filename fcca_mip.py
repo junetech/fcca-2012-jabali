@@ -41,7 +41,7 @@ def make_fcca_mip_model(params: ParamsFCCA, model_str: str) -> Model:
     inner_ring_id = params.ring_id_list[0]
     c_dict = params.c_dict
     f_dict = params.f_dict
-    d_dict = params.d_dict
+    g_dict = params.g_dict
     t_dict = params.t_dict
     delta = params.c_density
     total_c = params.total_customer
@@ -83,6 +83,13 @@ def make_fcca_mip_model(params: ParamsFCCA, model_str: str) -> Model:
         }
         for i in veh_type_list
     }
+    # # crowdsourced vehicles availability
+    # z_s = model.addVar(vtype=INTEGER, lb=0, name="z_s")
+    # g_dict = dict()
+    # g_dict["dummy"] = params.g_dict["dummy"]
+    # g_dict["private"] = params.g_dict["private"]
+    # g_dict["crowd"] = 18 + (z_s - 10) / 10
+    # model.addConstr(z_s >= 10)
 
     # Constraints
     # (3) minimum number of vehicles constrants
@@ -212,8 +219,14 @@ def make_fcca_mip_model(params: ParamsFCCA, model_str: str) -> Model:
     )
     # Apply given number of availabie private vehicles
     model.addConstr(
-        quicksum(n["t1"][j] for j in params.ring_id_list) <= 100, "t1 given"
+        quicksum(n["private"][j] for j in params.ring_id_list) <= 100000,
+        "PrivateVehicleAvailability",
     )
+    # # Number of available crowdsourced vehicles
+    # model.addConstr(
+    #     quicksum(n["crowd"][j] for j in params.ring_id_list) <= z_s,
+    #     "CrowdVehicleAvailability",
+    # )
 
     def make_optimal_obj() -> QuadExpr:
         """
@@ -233,26 +246,48 @@ def make_fcca_mip_model(params: ParamsFCCA, model_str: str) -> Model:
         o_cost += (
             quicksum(
                 quicksum(
-                    d_dict[i]
-                    * (y[i][j] + l[i][j] / 2)
-                    * (y[i][j] + l[i][j] / 2)
+                    g_dict[i] * (y[i][j] + l[i][j] / 2) * n[i][j]
                     for j in outer_ring_id_list
                 )
                 for i in veh_type_list
             )
             * params.ol_coeff
         )
+        # in Jabali et al. 2012:
+        # o_cost += (
+        #     quicksum(
+        #         quicksum(
+        #             g_dict[i]
+        #             * (y[i][j] + l[i][j] / 2)
+        #             * (y[i][j] + l[i][j] / 2)
+        #             for j in outer_ring_id_list
+        #         )
+        #         for i in veh_type_list
+        #     )
+        #     * params.ol_coeff
+        # )
+
         # total traverse cost for outer rings
         o_cost += (
             quicksum(
                 quicksum(
-                    (d_dict[i] * (y[i][j] + l[i][j] / 2) * l[i][j])
-                    for j in outer_ring_id_list
+                    (g_dict[i] * n[i][j] * l[i][j]) for j in outer_ring_id_list
                 )
                 for i in veh_type_list
             )
             * params.ot_coeff
         )
+        # in Jabali et al. 2012:
+        # o_cost += (
+        #     quicksum(
+        #         quicksum(
+        #             (g_dict[i] * (y[i][j] + l[i][j] / 2) * l[i][j])
+        #             for j in outer_ring_id_list
+        #         )
+        #         for i in veh_type_list
+        #     )
+        #     * params.ot_coeff
+        # )
 
         # inner ring cost function
         i_cost = QuadExpr()
@@ -263,9 +298,9 @@ def make_fcca_mip_model(params: ParamsFCCA, model_str: str) -> Model:
         # total line-haul cost for inner ring
         i_cost += (
             quicksum(
-                (d_dict[i] * l[i][inner_ring_id] * l[i][inner_ring_id])
-                # TODO: check
-                # (d_dict[i] * l[i][inner_ring_id] * n[i][inner_ring_id])
+                (g_dict[i] * l[i][inner_ring_id] * n[i][inner_ring_id])
+                # in Jabali et al. 2012:
+                # (g_dict[i] * l[i][inner_ring_id] * l[i][inner_ring_id])
                 for i in actual_veh_type_list
             )
             * params.il_coeff
@@ -273,9 +308,9 @@ def make_fcca_mip_model(params: ParamsFCCA, model_str: str) -> Model:
         # total traverse cost for inner ring
         i_cost += (
             quicksum(
-                (d_dict[i] * l[i][inner_ring_id] * l[i][inner_ring_id])
-                # TODO: check
-                # (d_dict[i] * l[i][inner_ring_id] * n[i][inner_ring_id])
+                (g_dict[i] * l[i][inner_ring_id] * n[i][inner_ring_id])
+                # in Jabali et al. 2012:
+                # (g_dict[i] * l[i][inner_ring_id] * l[i][inner_ring_id])
                 for i in actual_veh_type_list
             )
             * params.it_coeff
@@ -299,7 +334,7 @@ def make_fcca_mip_model(params: ParamsFCCA, model_str: str) -> Model:
         chi_prime = params.chi_p
         o_coeff = params.l1_o_coeff
         o_cost += quicksum(
-            d_dict[i]
+            g_dict[i]
             * quicksum(
                 (
                     y[i][j] * y[i][j]
@@ -316,7 +351,7 @@ def make_fcca_mip_model(params: ParamsFCCA, model_str: str) -> Model:
         # total line-haul cost for inner ring
         i_cost += (
             quicksum(
-                (d_dict[i] * l[i][inner_ring_id] * l[i][inner_ring_id])
+                (g_dict[i] * l[i][inner_ring_id] * l[i][inner_ring_id])
                 for i in actual_veh_type_list
             )
             * params.il_coeff
@@ -324,7 +359,7 @@ def make_fcca_mip_model(params: ParamsFCCA, model_str: str) -> Model:
         # total traverse cost for inner ring
         i_cost += (
             quicksum(
-                (d_dict[i] * l[i][inner_ring_id] * l[i][inner_ring_id])
+                (g_dict[i] * l[i][inner_ring_id] * l[i][inner_ring_id])
                 for i in actual_veh_type_list
             )
             * params.it_coeff

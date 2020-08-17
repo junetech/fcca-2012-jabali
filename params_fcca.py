@@ -17,7 +17,7 @@ class ParamsFCCA(ParamsEnv):
     # vehicle type parameters dictionary
     c_dict: Dict[str, int]
     f_dict: Dict[str, float]
-    d_dict: Dict[str, float]
+    g_dict: Dict[str, float]
     t_dict: Dict[str, float]
 
     # variable name dictionary: v_type -> ring_id -> name
@@ -124,28 +124,40 @@ class ParamsFCCA(ParamsEnv):
         )
 
     def calc_ol_coeff(self):
-        self.ol_coeff = 2 * math.pi / (self.w_star * self.speed)
+        self.ol_coeff = 2 / self.speed
+        # in Jabali et al. 2012:
+        # self.ol_coeff = 2 * math.pi / (self.w_star * self.speed)
 
     def calc_ot_coeff(self):
         self.ot_coeff = (
             2
             * self.c_density
-            * math.pi
+            * self.w_star
             / self.speed
             * math.sqrt(2 / (3 * self.c_density))
         )
+        # in Jabali et al. 2012:
+        # self.ot_coeff = (
+        #     2
+        #     * self.c_density
+        #     * math.pi
+        #     / self.speed
+        #     * math.sqrt(2 / (3 * self.c_density))
+        # )
 
     def calc_il_coeff(self):
-        self.il_coeff = 2 * math.pi / (self.speed * self.gamma)
-        # TODO: check
-        # self.il_coeff = 2 / self.speed
+        self.il_coeff = 2 / self.speed
+        # in Jabali et al. 2012:
+        # self.il_coeff = 2 * math.pi / (self.speed * self.gamma)
 
     def calc_it_coeff(self):
         self.it_coeff = (
-            self.c_density * self.gamma * math.pi / (3 * self.speed)
+            self.c_density * self.gamma * self.gamma / (3 * self.speed)
         )
-        # TODO: check
-        # self.c_density * self.gamma * self.gamma / (3 * self.speed)
+        # in Jabali et al. 2012:
+        # self.it_coeff = (
+        #     self.c_density * self.gamma * math.pi / (3 * self.speed)
+        # )
 
     def calc_l1_o_coeff(self):
         self.l1_o_coeff = 2 * math.pi / (self.w_star * self.speed)
@@ -213,7 +225,7 @@ class ParamsFCCA(ParamsEnv):
     def make_veh_var_cost_dict(self):
         """make variable cost dictionary of vehicles
         """
-        self.d_dict = {
+        self.g_dict = {
             v_type: self.veh_dict[v_type].var_cost
             for v_type in self.vehicle_types
         }
