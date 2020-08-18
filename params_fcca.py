@@ -14,6 +14,8 @@ class ParamsFCCA(ParamsEnv):
 
     ring_id_list: List[int]
     actual_veh_type_list: List[str]
+    outer_ring_id_list: List[int]
+    inner_ring_id: int
     # vehicle type parameters dictionary
     c_dict: Dict[str, int]
     f_dict: Dict[str, float]
@@ -62,6 +64,7 @@ class ParamsFCCA(ParamsEnv):
         temp_ring_count = 5  # TODO: fixed temporarily for base case
         self.apply_max_ring_count(temp_ring_count)
         self.make_actual_veh_type_list()
+        self.separate_ring_id_list()
 
         self.calc_w_star()
         self.calc_l_star()
@@ -90,6 +93,10 @@ class ParamsFCCA(ParamsEnv):
             t for t in self.vehicle_types if t != self.dummy_type
         ]
 
+    def separate_ring_id_list(self):
+        self.outer_ring_id_list = self.ring_id_list[1:]
+        self.inner_ring_id = self.ring_id_list[0]
+
     def calc_w_star(self):
         """Calculate and set value of w_star member
         """
@@ -114,7 +121,7 @@ class ParamsFCCA(ParamsEnv):
     def calc_gamma(self):
         """Calculate and set value of gamma member
         """
-        self.gamma = 0.95 * math.sqrt(3 / (2 * self.c_density))
+        self.gamma = 0.95 * math.sqrt(27 / (8 * self.c_density))
 
     def calc_total_customer(self):
         """Calculate and set value of total_customer member
