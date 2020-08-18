@@ -175,8 +175,7 @@ def make_fcca_mip_model(params: ParamsFCCA, model_str: str) -> Model:
 
     # (12) inner ring serviced by a single vehicle type except dummy type
     model.addConstr(
-        quicksum(x[i][inner_ring_id] for i in actual_veh_type_list) == 1,
-        "OnlyOneVtypeInnerRing",
+        x[params.dummy_type][inner_ring_id] == 0, "NoDummyVtypeInnerRing",
     )
 
     # (13) minimum number of vehicles constrants
