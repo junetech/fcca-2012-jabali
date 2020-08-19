@@ -17,6 +17,8 @@ class ParamsEnv:
     service_time_unit: str
     vehicle_types: List[str]  # Q = {0, ..., q}
     dummy_type: str
+    max_ring_count: int
+    gurobi_output: bool
 
     def __init__(self, filename: str, encoding: str):
         with open(filename, encoding=encoding) as f_data:

@@ -33,6 +33,8 @@ def make_fcca_mip_model(params: ParamsFCCA, model_str: str) -> Model:
     """
     # instance init
     model = Model(name=params.description)
+    if not params.gurobi_output:
+        model.setParam("OutputFlag", 0)
 
     # local aliases
     veh_type_list: List[str] = params.vehicle_types
@@ -192,7 +194,7 @@ def make_fcca_mip_model(params: ParamsFCCA, model_str: str) -> Model:
         constr_n = f"CapacityVtype_{i}_InnerRing"
         model.addConstr(
             delta * params.gamma * l[i][inner_ring_id]
-            == c_dict[i] * x[i][inner_ring_id],
+            <= c_dict[i] * x[i][inner_ring_id],
             constr_n,
         )
         # TODO the paper seems wrong: '== c_dict[i]'
@@ -218,7 +220,7 @@ def make_fcca_mip_model(params: ParamsFCCA, model_str: str) -> Model:
     )
     # Apply given number of availabie private vehicles
     model.addConstr(
-        quicksum(n["private"][j] for j in params.ring_id_list) <= 100000,
+        quicksum(n["private"][j] for j in params.ring_id_list) <= 1000,
         "PrivateVehicleAvailability",
     )
     # # Number of available crowdsourced vehicles
@@ -270,7 +272,7 @@ def make_fcca_mip_model(params: ParamsFCCA, model_str: str) -> Model:
         o_cost += (
             quicksum(
                 quicksum(
-                    (g_dict[i] * n[i][j] * l[i][j]) for j in outer_ring_id_list
+                    (g_dict[i] * l[i][j] * n[i][j]) for j in outer_ring_id_list
                 )
                 for i in veh_type_list
             )

@@ -1,7 +1,7 @@
 {
     "name": "private",
-    "capacity": 120,
+    "capacity": 300,
     "fixed_cost": 0.0,
-    "var_cost": 25.1,
+    "var_cost": 31.4,
     "route_duration_limit": 9.0
 }

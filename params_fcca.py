@@ -61,8 +61,7 @@ class ParamsFCCA(ParamsEnv):
             veh_filename = veh_file_postfix + v_type + veh_file_ext
             self.veh_dict[v_type] = ParamsVeh(veh_filename, encoding)
 
-        temp_ring_count = 5  # TODO: fixed temporarily for base case
-        self.apply_max_ring_count(temp_ring_count)
+        self.apply_max_ring_count(self.max_ring_count)
         self.make_actual_veh_type_list()
         self.separate_ring_id_list()
 
@@ -81,10 +80,10 @@ class ParamsFCCA(ParamsEnv):
             for v_type in self.actual_veh_type_list
         )
         min_inner_ring_rad = min_capacity / (self.c_density * self.gamma)
-        if self.radius < min_inner_ring_rad:
-            _str = f"Radius {self.radius} is not enough for inner ring approx:"
-            _str += f"should be >= {min_inner_ring_rad}"
-            raise ValueError(_str)
+        # if self.radius < min_inner_ring_rad:
+        #     _str = f"Radius {self.radius} is not enough for inner ring approx:"
+        #     _str += f"should be >= {min_inner_ring_rad}"
+        #     raise ValueError(_str)
 
     def make_actual_veh_type_list(self):
         """set list of vehicle types except dummy type

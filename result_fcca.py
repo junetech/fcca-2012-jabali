@@ -10,7 +10,8 @@ class ResultFCCA:
     outer_ring_id_list: List[int]
     irid: int  # inner ring id
 
-    o_coeff: float
+    ol_coeff: float
+    ot_coeff: float
     il_coeff: float
     it_coeff: float
     prod_coeff: float
@@ -52,7 +53,8 @@ class ResultFCCA:
         self.il_coeff = params.il_coeff
         self.it_coeff = params.it_coeff
         if model_str == "U1":
-            self.o_coeff = params.ol_coeff
+            self.ol_coeff = params.ol_coeff
+            self.ot_coeff = params.ot_coeff
         if model_str == "L1":
             self.o_coeff = params.l1_o_coeff
             self.prod_coeff = 1 - (params.chi_p / params.alpha) / 2
@@ -83,24 +85,21 @@ class ResultFCCA:
                     if self.x_dict[i][j] == 0:
                         continue
                     self.l_cost_dict[i][j] = (
-                        self.y_dict[i][j] * self.y_dict[i][j]
+                        self.y_dict[i][j] * self.n_dict[i][j]
                     )
                     self.l_cost_dict[i][j] += (
-                        self.y_dict[i][j] * self.l_dict[i][j]
-                    )
-                    self.l_cost_dict[i][j] += (
-                        self.l_dict[i][j] * self.l_dict[i][j] / 4
+                        self.l_dict[i][j] * self.n_dict[i][j] / 2
                     )
                     self.l_cost_dict[i][j] = (
                         self.l_cost_dict[i][j]
-                        * self.o_coeff
+                        * self.ol_coeff
                         * params.g_dict[i]
                     )
             for i in self.actual_veh_type_list:
                 if self.x_dict[i][self.irid] == 0:
                     continue
                 self.l_cost_dict[i][self.irid] = (
-                    self.l_dict[i][self.irid] * self.l_dict[i][self.irid]
+                    self.l_dict[i][self.irid] * self.n_dict[i][self.irid]
                 )
                 self.l_cost_dict[i][self.irid] = (
                     self.l_cost_dict[i][self.irid]
@@ -152,21 +151,18 @@ class ResultFCCA:
                     if self.x_dict[i][j] == 0:
                         continue
                     self.t_cost_dict[i][j] = (
-                        self.y_dict[i][j] * self.l_dict[i][j]
-                    )
-                    self.t_cost_dict[i][j] += (
-                        self.l_dict[i][j] * self.l_dict[i][j] / 2
+                        self.l_dict[i][j] * self.n_dict[i][j]
                     )
                     self.t_cost_dict[i][j] = (
                         self.t_cost_dict[i][j]
-                        * self.o_coeff
+                        * self.ot_coeff
                         * params.g_dict[i]
                     )
             for i in self.actual_veh_type_list:
                 if self.x_dict[i][self.irid] == 0:
                     continue
                 self.t_cost_dict[i][self.irid] = (
-                    self.l_dict[i][self.irid] * self.l_dict[i][self.irid]
+                    self.l_dict[i][self.irid] * self.n_dict[i][self.irid]
                 )
                 self.t_cost_dict[i][self.irid] = (
                     self.t_cost_dict[i][self.irid]
