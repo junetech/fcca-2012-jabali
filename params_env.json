@@ -2,15 +2,16 @@
     "description": "Base case parameters in km-h units",
     "radius": 16.0,
     "speed": 50.0,
-    "c_density": 40,
+    "c_density": 70,
     "service_time": 2.0,
     "service_time_unit": "minutes",
     "vehicle_types": [
         "dummy",
-        "private",
-        "crowd"
+        "private"
     ],
     "dummy_type": "dummy",
+    "use_params_crowd": true,
+    "params_crowd_filename": "params_crowd.json",
     "max_ring_count": 3,
     "gurobi_output": false
 }

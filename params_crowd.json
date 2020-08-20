@@ -1,0 +1,29 @@
+{
+    "name_prefix": "crowd",
+    "suffix_idx_start": 1,
+    "price_diff": false,
+    "capacity": 70,
+    "fixed_cost": 0.0,
+    "route_duration_limit": 4.0,
+    "var_cost_base": 18.0,
+    "availability_base": 20,
+    "var_cost_increment": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+    ],
+    "availability_increment": [
+        20,
+        60,
+        100,
+        140,
+        180,
+        220
+    ],
+    "note1": "the number of var_cost_increment elements =",
+    "note2": "1 + the number of availability_increment elements"
+}

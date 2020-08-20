@@ -13,7 +13,10 @@ class ParamsVeh:
     var_cost: float  # d_i: $/hour
     route_duration_limit: float  # t_i: hours
 
-    def __init__(self, filename: str, encoding: str):
+    # optional member
+    availability: int  # z_i
+
+    def init_from_json(self, filename: str, encoding: str):
         with open(filename, encoding=encoding) as f_data:
             _dict = json.load(f_data)
             for key, value in _dict.items():
@@ -31,14 +34,14 @@ def main():
     """parameter load test
     """
     json_filename_list = [
-        "params_veh_t0.json",
-        "params_veh_t1.json",
-        "params_veh_t2.json",
-        "params_veh_t3.json",
+        "params_veh_dummy.json",
+        "params_veh_private.json",
+        "params_veh_crowd.json",
     ]
     encoding = "utf-8"
     for json_filename in json_filename_list:
-        params_veh = ParamsVeh(json_filename, encoding)
+        params_veh = ParamsVeh()
+        params_veh.init_from_json(json_filename, encoding)
         params_veh.print_info()
 
 

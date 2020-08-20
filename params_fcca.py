@@ -6,6 +6,7 @@ from typing import List, Dict
 
 from params_env import ParamsEnv
 from params_veh import ParamsVeh
+from params_crowd import ParamsCrowd
 
 
 class ParamsFCCA(ParamsEnv):
@@ -59,7 +60,18 @@ class ParamsFCCA(ParamsEnv):
         self.veh_dict: Dict[str, ParamsVeh] = dict()
         for v_type in self.vehicle_types:
             veh_filename = veh_file_postfix + v_type + veh_file_ext
-            self.veh_dict[v_type] = ParamsVeh(veh_filename, encoding)
+            self.veh_dict[v_type] = ParamsVeh()
+            self.veh_dict[v_type].init_from_json(veh_filename, encoding)
+
+        if self.use_params_crowd:
+            params_crowd = ParamsCrowd(
+                self.params_crowd_filename, encoding=encoding
+            )
+            self.price_diff = params_crowd.price_diff
+            params_crowd.print_info()
+            for crowd_veh in params_crowd.generate_params_veh():
+                self.vehicle_types.append(crowd_veh.name)
+                self.veh_dict[crowd_veh.name] = crowd_veh
 
         self.apply_max_ring_count(self.max_ring_count)
         self.make_actual_veh_type_list()
