@@ -6,7 +6,7 @@ from time import time
 from typing import List
 
 from params_fcca import ParamsFCCA
-from result_fcca import ResultFCCA, test_constraints
+from result_fcca import ResultFCCA, test_validity
 from fcca_mip import make_fcca_mip_model, make_result_fcca
 
 
@@ -90,8 +90,52 @@ def main():
         )
     # Validity test of the solution
     if metadata.validity_test:
-        test_constraints(params_fcca, result)
+        test_validity(params_fcca, result)
     print("Optimize method finished")
+    show_result(result, metadata)
+
+
+def substitute_test():
+    master_metadata_filename = "master_metadata.json"
+    metadata = MasterMetadata(master_metadata_filename)
+
+    params_fcca = ParamsFCCA(
+        metadata.env_json_filename,
+        metadata.veh_file_postfix,
+        metadata.veh_file_ext,
+        metadata.json_encoding,
+    )
+    params_fcca.print_info()
+    params_fcca.amend_time_unit()
+    params_fcca.make_mip_dicts()
+    fcca_model = make_fcca_mip_model(params_fcca, metadata.model)
+    fcca_model.write(metadata.lp_filename)
+    fcca_model.optimize()
+    result = make_result_fcca(fcca_model, params_fcca, metadata.model)
+    # Optimize until (the inner circle radius > 0)
+    inner_circle_radius = sum(
+        result.l_dict[i][params_fcca.inner_ring_id]
+        for i in params_fcca.actual_veh_type_list
+    )
+    while inner_circle_radius == 0.0:
+        params_fcca.max_ring_count -= 1
+        print(
+            f"Trying again with max_ring_count = {params_fcca.max_ring_count}"
+        )
+        params_fcca.make_mip_dicts()
+        fcca_model = make_fcca_mip_model(params_fcca, metadata.model)
+        fcca_model.write(metadata.lp_filename)
+        fcca_model.optimize()
+        result = make_result_fcca(fcca_model, params_fcca, metadata.model)
+        inner_circle_radius = sum(
+            result.l_dict[i][params_fcca.inner_ring_id]
+            for i in params_fcca.actual_veh_type_list
+        )
+    params_fcca.veh_dict["crowd1"].availability = 100
+    params_fcca.make_mip_dicts()
+    # Validity test of the solution
+    if metadata.validity_test:
+        test_validity(params_fcca, result)
     show_result(result, metadata)
 
 

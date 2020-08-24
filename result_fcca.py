@@ -302,7 +302,7 @@ def test_eq(lhs, rhs, abs_tol, err_str):
     assert math.isclose(lhs, rhs, rel_tol=0.0, abs_tol=abs_tol), err_str
 
 
-def test_constraints(params: ParamsFCCA, result: ResultFCCA):
+def test_validity(params: ParamsFCCA, result: ResultFCCA):
     """Test objective & constraints
 
     Args:
@@ -310,11 +310,28 @@ def test_constraints(params: ParamsFCCA, result: ResultFCCA):
         result (ResultFCCA): after calc_all_costs
     """
     print("Starting validating a solution of MIP model")
-    print("Objective function value")
-    result.cost_total = result.cost_total
-    _str = f"Objective value equality"
-    test_eq(result.solver_obj, result.cost_total, params.abs_tol, _str)
+    test_obj(result, params.abs_tol)
+    test_constraints(params, result)
 
+
+def test_obj(result: ResultFCCA, abs_tol: float):
+    """check whether objective value from solver
+    & value calculated from parameters are the same
+
+    Args:
+        result (ResultFCCA): : after calc_all_costs
+    """
+    _str = f"Objective value equality"
+    test_eq(result.solver_obj, result.cost_total, abs_tol, _str)
+
+
+def test_constraints(params: ParamsFCCA, result: ResultFCCA):
+    """Test whether the solution in result satisfies constraints by params
+
+    Args:
+        params (ParamsFCCA)
+        result (ResultFCCA): after calc_all_costs
+    """
     # local aliases
     veh_type_list: List[str] = params.vehicle_types
     actual_veh_type_list: List[str] = params.actual_veh_type_list

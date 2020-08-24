@@ -70,6 +70,9 @@ def make_fcca_mip_model(params: ParamsFCCA, model_str: str) -> Model:
         }
         for i in veh_type_list
     }
+    # n["private"][3].Start = 164
+    # n["crowd1"][1].Start = 1
+    # n["crowd1"][2].Start = 19
     # length of a segment in ring j
     l = {
         i: {
