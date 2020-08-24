@@ -4,7 +4,11 @@
     "veh_file_ext": ".json",
     "json_encoding": "utf-8",
     "lp_filename": "fcca_mip.lp",
-
+    "variable_csv_path": "results/variables.csv",
+    "validity_test": true,
     "model": "U1",
-    "model_selection": ["U1", "L1"]
+    "model_selection": [
+        "U1",
+        "L1"
+    ]
 }

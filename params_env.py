@@ -15,12 +15,13 @@ class ParamsEnv:
     c_density: float  # \delta
     service_time: float  # \mu
     service_time_unit: str
-    vehicle_types: List[str]  # Q = {0, ..., q}
     dummy_type: str
+    private_veh_types: List[str]
     use_params_crowd: bool
     params_crowd_filename: str
     max_ring_count: int
     gurobi_output: bool
+    abs_tol: float
 
     def __init__(self, filename: str, encoding: str):
         with open(filename, encoding=encoding) as f_data:

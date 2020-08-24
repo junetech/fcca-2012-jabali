@@ -132,3 +132,4 @@ dmypy.json
 *.lp
 *.mps
 .vscode/
+results/

@@ -14,7 +14,9 @@ class ParamsFCCA(ParamsEnv):
     """
 
     ring_id_list: List[int]
+    vehicle_types: List[str]
     actual_veh_type_list: List[str]
+    crowd_veh_types: List[str]
     outer_ring_id_list: List[int]
     inner_ring_id: int
     # vehicle type parameters dictionary
@@ -23,9 +25,12 @@ class ParamsFCCA(ParamsEnv):
     g_dict: Dict[str, float]
     t_dict: Dict[str, float]
 
-    # variable name dictionary: v_type -> ring_id -> name
-    n_name_dict: Dict[str, Dict[int, str]]
+    # variable name dictionary
+    # v_type -> name
+    u_name_dict: Dict[str, str]
+    # v_type -> ring_id -> name
     x_name_dict: Dict[str, Dict[int, str]]
+    n_name_dict: Dict[str, Dict[int, str]]
     l_name_dict: Dict[str, Dict[int, str]]
     y_name_dict: Dict[str, Dict[int, str]]
 
@@ -56,6 +61,8 @@ class ParamsFCCA(ParamsEnv):
             _dict = json.load(e_data)
             for key, value in _dict.items():
                 self.__dict__[key] = value
+        self.vehicle_types = [self.dummy_type]
+        self.vehicle_types.extend(self.private_veh_types)
 
         self.veh_dict: Dict[str, ParamsVeh] = dict()
         for v_type in self.vehicle_types:
@@ -64,6 +71,7 @@ class ParamsFCCA(ParamsEnv):
             self.veh_dict[v_type].init_from_json(veh_filename, encoding)
 
         if self.use_params_crowd:
+            self.crowd_veh_types = list()
             params_crowd = ParamsCrowd(
                 self.params_crowd_filename, encoding=encoding
             )
@@ -71,11 +79,9 @@ class ParamsFCCA(ParamsEnv):
             params_crowd.print_info()
             for crowd_veh in params_crowd.generate_params_veh():
                 self.vehicle_types.append(crowd_veh.name)
+                self.crowd_veh_types.append(crowd_veh.name)
                 self.veh_dict[crowd_veh.name] = crowd_veh
-
-        self.apply_max_ring_count(self.max_ring_count)
         self.make_actual_veh_type_list()
-        self.separate_ring_id_list()
 
         self.calc_w_star()
         self.calc_l_star()
@@ -125,9 +131,9 @@ class ParamsFCCA(ParamsEnv):
         )
         self.l_star = _min_cap / math.sqrt(6 * self.c_density)
 
-    def apply_max_ring_count(self, max_ring_count: int):
-        self.max_ring_count = max_ring_count
-        self.ring_id_list = [i + 1 for i in range(max_ring_count)]
+    def apply_max_ring_count(self):
+        self.ring_id_list = [i + 1 for i in range(self.max_ring_count)]
+        self.separate_ring_id_list()
 
     def calc_gamma(self):
         """Calculate and set value of gamma member
@@ -259,22 +265,25 @@ class ParamsFCCA(ParamsEnv):
     def define_var_name_dicts(self):
         """make dictionary of variable names
         """
-        self.n_name_dict = dict()
+        self.u_name_dict = dict()
         self.x_name_dict = dict()
+        self.n_name_dict = dict()
         self.l_name_dict = dict()
         self.y_name_dict = dict()
         for i in self.vehicle_types:
-            self.n_name_dict[i] = dict()
+            self.u_name_dict[i] = f"u({i})"
             self.x_name_dict[i] = dict()
+            self.n_name_dict[i] = dict()
             self.l_name_dict[i] = dict()
             self.y_name_dict[i] = dict()
             for j in self.ring_id_list:
-                self.n_name_dict[i][j] = f"n({i},{j})"
                 self.x_name_dict[i][j] = f"x({i},{j})"
+                self.n_name_dict[i][j] = f"n({i},{j})"
                 self.l_name_dict[i][j] = f"l({i},{j})"
                 self.y_name_dict[i][j] = f"y({i},{j})"
 
     def make_mip_dicts(self):
+        self.apply_max_ring_count()
         self.make_veh_capacity_dict()
         self.make_veh_fixed_cost_dict()
         self.make_veh_var_cost_dict()

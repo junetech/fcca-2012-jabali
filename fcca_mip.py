@@ -49,18 +49,23 @@ def make_fcca_mip_model(params: ParamsFCCA, model_str: str) -> Model:
     total_c = params.total_customer
 
     # Variables
-    # number of vehicles of type i assigned to ring j
-    n = {
-        i: {
-            j: model.addVar(vtype=INTEGER, name=params.n_name_dict[i][j], lb=0)
-            for j in params.ring_id_list
-        }
+    # 1 if vehicle type i is used
+    u = {
+        i: model.addVar(vtype=BINARY, name=params.u_name_dict[i])
         for i in veh_type_list
     }
     # 1 if vehicle type i is assigned to ring j
     x = {
         i: {
             j: model.addVar(vtype=BINARY, name=params.x_name_dict[i][j])
+            for j in params.ring_id_list
+        }
+        for i in veh_type_list
+    }
+    # number of vehicles of type i assigned to ring j
+    n = {
+        i: {
+            j: model.addVar(vtype=INTEGER, name=params.n_name_dict[i][j], lb=0)
             for j in params.ring_id_list
         }
         for i in veh_type_list
@@ -85,13 +90,6 @@ def make_fcca_mip_model(params: ParamsFCCA, model_str: str) -> Model:
         }
         for i in veh_type_list
     }
-    # # crowdsourced vehicles availability
-    # z_s = model.addVar(vtype=INTEGER, lb=0, name="z_s")
-    # g_dict = dict()
-    # g_dict["dummy"] = params.g_dict["dummy"]
-    # g_dict["private"] = params.g_dict["private"]
-    # g_dict["crowd"] = 18 + (z_s - 10) / 10
-    # model.addConstr(z_s >= 10)
 
     # Constraints
     # (3) minimum number of vehicles constrants
@@ -175,7 +173,7 @@ def make_fcca_mip_model(params: ParamsFCCA, model_str: str) -> Model:
     #         lhs <= rhs, f"DurationLimitVtype_{i}_InnerRing",
     #     )
 
-    # (12) inner ring serviced by a single vehicle type except dummy type
+    # (12) inner ring not serviced by a dummy vehicle
     model.addConstr(
         x[params.dummy_type][inner_ring_id] == 0, "NoDummyVtypeInnerRing",
     )
@@ -218,16 +216,38 @@ def make_fcca_mip_model(params: ParamsFCCA, model_str: str) -> Model:
         >= total_c,
         "TotalCapacityEnough",
     )
+
+    # TODO: Force the type of ring with zero length to dummy
+
     # Apply given number of availabie private vehicles
-    model.addConstr(
-        quicksum(n["private"][j] for j in params.ring_id_list) <= 1000,
-        "PrivateVehicleAvailability",
-    )
-    # # Number of available crowdsourced vehicles
-    # model.addConstr(
-    #     quicksum(n["crowd"][j] for j in params.ring_id_list) <= z_s,
-    #     "CrowdVehicleAvailability",
-    # )
+    for i in params.private_veh_types:
+        z_p = 1000  # TODO: as input
+        model.addConstr(
+            quicksum(n[i][j] for j in params.ring_id_list) <= z_p,
+            f"VehicleAvailability{i}",
+        )
+    # Number of available crowdsourced vehicles
+    for i in params.crowd_veh_types:
+        z_s = params.veh_dict[i].availability
+        if z_s is math.inf:
+            continue
+        model.addConstr(
+            quicksum(n[i][j] for j in params.ring_id_list) <= z_s,
+            f"VehicleAvailability{i}",
+        )
+    # u[i] definition
+    for i in params.actual_veh_type_list:
+        model.addConstr(
+            quicksum(l[i][j] for j in params.ring_id_list) / params.radius
+            <= u[i],
+            f"{i}Used",
+        )
+    if not params.price_diff:
+        # Only one type of crowdsourced vehicles are available
+        model.addConstr(
+            quicksum(u[i] for i in params.crowd_veh_types) <= 1,
+            "OnlyOneCrowdTypeUsed",
+        )
 
     def make_optimal_obj() -> QuadExpr:
         """
@@ -381,7 +401,7 @@ def make_fcca_mip_model(params: ParamsFCCA, model_str: str) -> Model:
     return model
 
 
-def show_result(model: Model, params: ParamsFCCA, model_str: str):
+def make_result_fcca(model: Model, params: ParamsFCCA, model_str: str):
     """Summarize results
 
     Args:
@@ -392,34 +412,26 @@ def show_result(model: Model, params: ParamsFCCA, model_str: str):
     # variable value retrieval
     v_dict: Dict[str, Any] = dict()
     for v in model.getVars():
-        if v.x >= 0.0001:
+        if v.x >= 0.000001:
             v_dict[v.varName] = v.x
         else:
             v_dict[v.varName] = 0
     result = ResultFCCA(params, model_str)
+    result.solver_obj = model.objVal
     for i in params.vehicle_types:
-        if i == params.dummy_type:
-            continue
+        u_name = params.u_name_dict[i]
+        result.u_dict[i] = round(v_dict[u_name])
         for j in params.ring_id_list:
-            n_name = params.n_name_dict[i][j]
             x_name = params.x_name_dict[i][j]
+            n_name = params.n_name_dict[i][j]
             y_name = params.y_name_dict[i][j]
             l_name = params.l_name_dict[i][j]
-            result.n_dict[i][j] = round(v_dict[n_name])
             result.x_dict[i][j] = round(v_dict[x_name])
+            result.n_dict[i][j] = round(v_dict[n_name])
             result.y_dict[i][j] = v_dict[y_name]
             result.l_dict[i][j] = v_dict[l_name]
-
-            if result.x_dict[i][j] == 1:
-                _str = f"{x_name}: {result.x_dict[i][j]},"
-                _str += f" {n_name}: {result.n_dict[i][j]},"
-                _str += f" {y_name}: {result.y_dict[i][j]},"
-                _str += f" {l_name}: {result.l_dict[i][j]}"
-                print(_str)
-
-    # cost calculation
     result.calc_all_costs(params, model_str)
-    result.print_cost_info()
+    return result
 
 
 def main():
