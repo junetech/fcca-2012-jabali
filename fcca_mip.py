@@ -35,6 +35,7 @@ def make_fcca_mip_model(params: ParamsFCCA, model_str: str) -> Model:
     model = Model(name=params.description)
     if not params.gurobi_output:
         model.setParam("OutputFlag", 0)
+    model.setParam("Presolve", 0)
 
     # local aliases
     veh_type_list: List[str] = params.vehicle_types
@@ -70,9 +71,6 @@ def make_fcca_mip_model(params: ParamsFCCA, model_str: str) -> Model:
         }
         for i in veh_type_list
     }
-    # n["private"][3].Start = 164
-    # n["crowd1"][1].Start = 1
-    # n["crowd1"][2].Start = 19
     # length of a segment in ring j
     l = {
         i: {
