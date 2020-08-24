@@ -50,47 +50,56 @@ def show_result(result: ResultFCCA, metadata: MasterMetadata):
     result.variable_to_csv(metadata.variable_csv_path)
 
 
+def result_by_params(
+    params: ParamsFCCA, metadata: MasterMetadata
+) -> ResultFCCA:
+    params.make_mip_dicts()
+    fcca_model = make_fcca_mip_model(params, metadata.model)
+    fcca_model.write(metadata.lp_filename)
+    fcca_model.optimize()
+    return make_result_fcca(fcca_model, params, metadata.model)
+
+
+def result_using_inner_circle(
+    params: ParamsFCCA, metadata: MasterMetadata
+) -> ResultFCCA:
+    result = result_by_params(params, metadata)
+    # Optimize until (the inner circle radius > 0)
+    inner_circle_radius = sum(
+        result.l_dict[i][params.inner_ring_id]
+        for i in params.actual_veh_type_list
+    )
+    while inner_circle_radius == 0.0:
+        params.max_ring_count -= 1
+        if params.max_ring_count == 0:
+            raise ValueError("No solution using inner circle")
+        print(f"Trying again with max_ring_count = {params.max_ring_count}")
+        result = result_by_params(params, metadata)
+        inner_circle_radius = sum(
+            result.l_dict[i][params.inner_ring_id]
+            for i in params.actual_veh_type_list
+        )
+    return result
+
+
 def main():
     """read and solve
     """
     master_metadata_filename = "master_metadata.json"
     metadata = MasterMetadata(master_metadata_filename)
 
-    params_fcca = ParamsFCCA(
+    params = ParamsFCCA(
         metadata.env_json_filename,
         metadata.veh_file_postfix,
         metadata.veh_file_ext,
         metadata.json_encoding,
     )
-    params_fcca.print_info()
-    params_fcca.amend_time_unit()
-    params_fcca.make_mip_dicts()
-    fcca_model = make_fcca_mip_model(params_fcca, metadata.model)
-    fcca_model.write(metadata.lp_filename)
-    fcca_model.optimize()
-    result = make_result_fcca(fcca_model, params_fcca, metadata.model)
-    # Optimize until (the inner circle radius > 0)
-    inner_circle_radius = sum(
-        result.l_dict[i][params_fcca.inner_ring_id]
-        for i in params_fcca.actual_veh_type_list
-    )
-    while inner_circle_radius == 0.0:
-        params_fcca.max_ring_count -= 1
-        print(
-            f"Trying again with max_ring_count = {params_fcca.max_ring_count}"
-        )
-        params_fcca.make_mip_dicts()
-        fcca_model = make_fcca_mip_model(params_fcca, metadata.model)
-        fcca_model.write(metadata.lp_filename)
-        fcca_model.optimize()
-        result = make_result_fcca(fcca_model, params_fcca, metadata.model)
-        inner_circle_radius = sum(
-            result.l_dict[i][params_fcca.inner_ring_id]
-            for i in params_fcca.actual_veh_type_list
-        )
+    params.print_info()
+    params.amend_time_unit()
     # Validity test of the solution
+    result = result_using_inner_circle(params, metadata)
     if metadata.validity_test:
-        test_validity(params_fcca, result)
+        test_validity(params, result)
     print("Optimize method finished")
     show_result(result, metadata)
 
