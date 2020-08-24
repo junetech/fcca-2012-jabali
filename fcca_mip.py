@@ -424,20 +424,8 @@ def make_result_fcca(model: Model, params: ParamsFCCA, model_str: str):
         else:
             v_dict[v.varName] = 0
     result = ResultFCCA(params, model_str)
-    result.solver_obj = model.objVal
-    for i in params.vehicle_types:
-        u_name = params.u_name_dict[i]
-        result.u_dict[i] = round(v_dict[u_name])
-        for j in params.ring_id_list:
-            x_name = params.x_name_dict[i][j]
-            n_name = params.n_name_dict[i][j]
-            y_name = params.y_name_dict[i][j]
-            l_name = params.l_name_dict[i][j]
-            result.x_dict[i][j] = round(v_dict[x_name])
-            result.n_dict[i][j] = round(v_dict[n_name])
-            result.y_dict[i][j] = v_dict[y_name]
-            result.l_dict[i][j] = v_dict[l_name]
-    result.calc_all_costs(params, model_str)
+    result.fill_from_model(model.objVal, v_dict, params)
+    result.calc_all_values(params, model_str)
     return result
 
 

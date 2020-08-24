@@ -3,12 +3,19 @@
     "veh_file_postfix": "params_veh_",
     "veh_file_ext": ".json",
     "json_encoding": "utf-8",
+    "result_folder": "results/",
+    "csv_ext": ".csv",
+    "write_lp_file": false,
     "lp_filename": "fcca_mip.lp",
-    "variable_csv_path": "results/variables.csv",
-    "validity_test": true,
+    "write_var_file": false,
+    "var_file_prefix": "variables",
+    "veh_file_prefix": "veh_info_",
+    "ring_file_prefix": "ring_info_",
+    "long_term_file_prefix": "private_veh_long_term",
     "model": "U1",
     "model_selection": [
         "U1",
         "L1"
-    ]
+    ],
+    "validity_test": true
 }

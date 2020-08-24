@@ -75,6 +75,7 @@ class ParamsFCCA(ParamsEnv):
             params_crowd = ParamsCrowd(
                 self.params_crowd_filename, encoding=encoding
             )
+            self.crowd_type_id = params_crowd.name_prefix
             self.price_diff = params_crowd.price_diff
             params_crowd.print_info()
             for crowd_veh in params_crowd.generate_params_veh():
