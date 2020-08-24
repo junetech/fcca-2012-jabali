@@ -13,5 +13,5 @@
     "params_crowd_filename": "params_crowd.json",
     "max_ring_count": 5,
     "gurobi_output": true,
-    "abs_tol": 0.000001
+    "abs_tol": 0.0001
 }

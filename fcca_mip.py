@@ -123,6 +123,12 @@ def make_fcca_mip_model(params: ParamsFCCA, model_str: str) -> Model:
             model.addConstr(
                 l[i][j] <= big_M_radius * x[i][j], f"bigM_l_{i}_{j}"
             )
+    # big-M for convenient used vehicle count
+    for i in actual_veh_type_list:
+        for j in params.ring_id_list:
+            model.addConstr(
+                x[i][j] * params.abs_tol <= l[i][j], f"bigM_lx_{i}_{j}"
+            )
 
     # (8) minimum distance(the depot -> the inner edge of ring j)
     for i in veh_type_list:
