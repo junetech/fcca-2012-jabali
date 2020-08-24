@@ -6,8 +6,9 @@ from time import time
 from typing import List
 
 from params_fcca import ParamsFCCA
-from result_fcca import ResultFCCA, test_validity
+from result_fcca import ResultFCCA
 from fcca_mip import make_fcca_mip_model, make_result_fcca
+from solution_tests import test_validity
 
 
 class MasterMetadata:
