@@ -6,11 +6,13 @@
     "fixed_cost": 0.0,
     "route_duration_limit": 4.0,
     "var_cost_base": 18.0,
-    "availability_base": 19,
+    "availability_base": 17,
     "var_cost_increment": [
-        14.0
+        2.0,
+        2.0,
+        10.0
     ],
-    "availability_increment": [],
+    "availability_increment": [1, 1],
     "note1": "the number of var_cost_increment elements =",
     "note2": "1 + the number of availability_increment elements"
 }
