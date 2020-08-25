@@ -1,4 +1,5 @@
 {
+    "env_long_filename": "params_env_long_sample.json",
     "env_json_filename": "params_env.json",
     "veh_file_postfix": "params_veh_",
     "veh_file_ext": ".json",
@@ -17,5 +18,6 @@
         "U1",
         "L1"
     ],
-    "validity_test": true
+    "validity_test": true,
+    "validity_print": false
 }

@@ -23,7 +23,7 @@ class ParamsEnv:
     gurobi_output: bool
     abs_tol: float
 
-    def __init__(self, filename: str, encoding: str):
+    def fill_from_json(self, filename: str, encoding: str):
         with open(filename, encoding=encoding) as f_data:
             _dict = json.load(f_data)
             for key, value in _dict.items():
@@ -52,7 +52,8 @@ def main():
     """
     json_filename = "params_env.json"
     encoding = "utf-8"
-    params_env = ParamsEnv(json_filename, encoding)
+    params_env = ParamsEnv()
+    params_env.fill_from_json(json_filename, encoding)
     params_env.print_info()
 
 

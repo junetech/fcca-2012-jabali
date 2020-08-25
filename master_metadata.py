@@ -7,6 +7,7 @@ class MasterMetadata:
     """Data of data files
     """
 
+    env_long_filename: str
     env_json_filename: str
     veh_file_postfix: str
     veh_file_ext: str
@@ -25,6 +26,7 @@ class MasterMetadata:
     model: str
     model_selection: List[str]
     validity_test: bool
+    validity_print: bool
 
     def __init__(self, filename: str):
         with open(filename) as f_data:

@@ -50,12 +50,8 @@ class ParamsFCCA(ParamsEnv):
     chi_p: float
     l1_o_coeff: float
 
-    def __init__(
-        self,
-        env_filename: str,
-        veh_file_postfix: str,
-        veh_file_ext: str,
-        encoding: str,
+    def fill_env_info_from_json(
+        self, env_filename: str, encoding: str,
     ):
         with open(env_filename, encoding=encoding) as e_data:
             _dict = json.load(e_data)
@@ -64,6 +60,9 @@ class ParamsFCCA(ParamsEnv):
         self.vehicle_types = [self.dummy_type]
         self.vehicle_types.extend(self.private_veh_types)
 
+    def fill_veh_info_from_json(
+        self, veh_file_postfix: str, veh_file_ext: str, encoding: str
+    ):
         self.veh_dict: Dict[str, ParamsVeh] = dict()
         for v_type in self.vehicle_types:
             veh_filename = veh_file_postfix + v_type + veh_file_ext
@@ -77,7 +76,6 @@ class ParamsFCCA(ParamsEnv):
             )
             self.crowd_type_id = params_crowd.name_prefix
             self.price_diff = params_crowd.price_diff
-            params_crowd.print_info()
             for crowd_veh in params_crowd.generate_params_veh():
                 self.vehicle_types.append(crowd_veh.name)
                 self.crowd_veh_types.append(crowd_veh.name)
@@ -300,8 +298,10 @@ def main():
     veh_file_ext = ".json"
     encoding = "utf-8"
 
-    fcca_params = ParamsFCCA(
-        env_json_filename, veh_file_postfix, veh_file_ext, encoding
+    fcca_params = ParamsFCCA()
+    fcca_params.fill_env_info_from_json(env_json_filename, encoding)
+    fcca_params.fill_veh_info_from_json(
+        veh_file_postfix, veh_file_ext, encoding
     )
     fcca_params.print_info()
 

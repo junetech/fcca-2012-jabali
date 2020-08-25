@@ -1,0 +1,22 @@
+{
+    "description": "1st scenario",
+    "radius": 16.0,
+    "speed": 50.0,
+    "c_density_list": [
+        12.5646,
+        15.1392,
+        16.828,
+        18.1167
+    ],
+    "service_time": 2.0,
+    "service_time_unit": "minutes",
+    "private_cost_per_day": 9.6,
+    "dummy_type": "dummy",
+    "private_veh_types": [
+        "private"
+    ],
+    "params_crowd_filename": "params_crowd.json",
+    "max_ring_count": 5,
+    "gurobi_output": false,
+    "abs_tol": 0.0001
+}

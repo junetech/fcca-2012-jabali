@@ -18,7 +18,9 @@ LinExpr = gp.LinExpr
 MINIMIZE = GRB.MINIMIZE
 
 
-def make_fcca_mip_model(params: ParamsFCCA, model_str: str) -> Model:
+def make_fcca_mip_model(
+    params: ParamsFCCA, model_str: str, private_size=math.inf
+) -> Model:
     """Define Model instance for MIP formulation of FCCA
 
     Args:
@@ -228,7 +230,7 @@ def make_fcca_mip_model(params: ParamsFCCA, model_str: str) -> Model:
 
     # Apply given number of availabie private vehicles
     for i in params.private_veh_types:
-        z_p = 1000  # TODO: as input
+        z_p = private_size
         model.addConstr(
             quicksum(n[i][j] for j in params.ring_id_list) <= z_p,
             f"VehicleAvailability{i}",
